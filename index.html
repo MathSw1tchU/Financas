@@ -10,12 +10,14 @@
     .container { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 8px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     h1 { text-align: center; margin-bottom: 20px; color: #2c3e50; }
     
+    /* Navegação por Abas */
     .nav-tabs { display: flex; gap: 10px; border-bottom: 2px solid #ddd; margin-bottom: 20px; overflow-x: auto; }
     .tab-button { padding: 10px 15px; border: none; background: none; font-size: 15px; font-weight: bold; cursor: pointer; color: #666; border-bottom: 3px solid transparent; transition: all 0.3s ease; white-space: nowrap; }
     .tab-button.active { color: #27ae60; border-bottom-color: #27ae60; }
     .tab-content { display: none; }
     .tab-content.active { display: block; }
 
+    /* Formulários e Filtros */
     form, .filter-box { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; background: #f9f9f9; padding: 15px; border-radius: 6px; }
     .filter-box { grid-template-columns: 1fr 1fr; align-items: center; }
     .input-group { display: flex; flex-direction: column; gap: 5px; }
@@ -25,19 +27,25 @@
     button.btn-submit { grid-column: span 2; background-color: #27ae60; color: white; border: none; font-weight: bold; cursor: pointer; transition: background 0.2s; }
     button.btn-submit:hover { background-color: #219150; }
 
+    /* Listas e Itens */
     ul { list-style: none; }
-    li { background: #fff; border: 1px solid #e0e0e0; padding: 12px 15px; margin-bottom: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+    li { background: #fff; border: 1px solid #e0e0e0; padding: 12px 15px; margin-bottom: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
     li.pago-status { border-left: 5px solid #27ae60; background: #f0fff4; }
     li.pendente-status { border-left: 5px solid #e74c3c; }
     .item-info { display: flex; flex-direction: column; }
     .item-title { font-weight: bold; color: #333; }
     .item-sub { font-size: 12px; color: #777; }
-    .item-actions { display: flex; align-items: center; gap: 15px; }
+    .item-actions { display: flex; align-items: center; gap: 10px; }
     .item-val { font-weight: bold; font-size: 16px; }
     .val-receita { color: #27ae60; }
     .val-despesa { color: #e74c3c; }
     .val-cartao { color: #e67e22; }
     .val-invest { color: #2980b9; }
+
+    /* Botões de Ação (Editar e Excluir) */
+    .btn-action { padding: 5px 8px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+    .btn-edit { background-color: #3498db; color: white; }
+    .btn-delete { background-color: #e74c3c; color: white; }
 
     .badge-tipo { font-size: 10px; padding: 2px 6px; border-radius: 4px; color: white; text-transform: uppercase; font-weight: bold; margin-left: 5px; }
     .badge-receita { background-color: #27ae60; }
@@ -47,11 +55,39 @@
     .pay-toggle { cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: bold; }
     .resumo-card { background: #eef2f5; padding: 15px; border-radius: 6px; margin-bottom: 20px; display: flex; justify-content: space-around; font-weight: bold; }
 
+    /* Visualização Visual dos Cartões de Crédito */
+    .cards-container { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 25px; }
+    .credit-card {
+      width: 240px;
+      height: 140px;
+      border-radius: 12px;
+      padding: 15px;
+      color: white;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      transition: transform 0.2s;
+    }
+    .credit-card:hover { transform: translateY(-3px); }
+    .card-brand { font-size: 18px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+    .card-label { font-size: 11px; opacity: 0.8; text-transform: uppercase; }
+    .card-amount { font-size: 22px; font-weight: bold; }
+
+    /* Cores Personalizadas para Bancos/Cartões */
+    .bg-nubank { background: linear-gradient(135deg, #8a05be, #530082); }
+    .bg-itau { background: linear-gradient(135deg, #ec7000, #b35300); }
+    .bg-inter { background: linear-gradient(135deg, #ff7a00, #cc6200); }
+    .bg-bradesco { background: linear-gradient(135deg, #cc092f, #99001f); }
+    .bg-santander { background: linear-gradient(135deg, #ec0000, #a30000); }
+    .bg-default { background: linear-gradient(135deg, #2c3e50, #1a252f); }
+
     @media (max-width: 600px) {
       form, .filter-box { grid-template-columns: 1fr; }
       .input-group.full { grid-column: span 1; }
       button.btn-submit { grid-column: span 1; }
       .resumo-card { flex-direction: column; gap: 10px; }
+      .credit-card { width: 100%; }
     }
   </style>
 </head>
@@ -91,6 +127,10 @@
         <div>Saídas/Cartão: <span id="total-despesas" class="val-despesa">R$ 0,00</span></div>
         <div>Saldo Mês: <span id="saldo-mes">R$ 0,00</span></div>
       </div>
+
+      <!-- Faturas dos Cartões do Mês -->
+      <h3>Faturas do Mês (Cartões)</h3>
+      <div id="cards-wrapper" class="cards-container"></div>
 
       <h3>Histórico Filtrado</h3>
       <ul id="list-geral"></ul>
@@ -153,20 +193,20 @@
           <input type="number" id="card-valor" step="0.01" placeholder="0.00" required>
         </div>
         <div class="input-group">
-          <label>Nome do Cartão</label>
-          <input type="text" id="card-nome" placeholder="Ex: Nubank, Itaú" required>
+          <label>Nome do Cartão (ex: Nubank, Itaú)</label>
+          <input type="text" id="card-nome" placeholder="Ex: Nubank" required>
         </div>
         <div class="input-group">
           <label>Nº de Parcelas</label>
           <input type="number" id="card-parcelas" min="1" value="1" required>
         </div>
         <div class="input-group full">
-          <label>Data da Compra</label>
+          <label>Data da Primeira Parcela</label>
           <input type="date" id="card-data" required>
         </div>
         <button type="submit" class="btn-submit">Salvar Compra</button>
       </form>
-      <h3>Compras no Cartão</h3>
+      <h3>Compras / Parcelas no Cartão</h3>
       <ul id="list-cartoes"></ul>
     </div>
 
@@ -222,10 +262,10 @@
     });
   </script>
 
-  <!-- FIREBASE & SCRIPT COMPLETO -->
+  <!-- FIREBASE & LÓGICA -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+    import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyChVe0qNeGCC4I0FIAmq2lEdbk61i5LJAA",
@@ -246,17 +286,50 @@
     const cartoesRef = ref(db, 'financas/cartoes');
     const investimentosRef = ref(db, 'financas/investimentos');
 
-    let globalData = { receitas: {}, despesas: {}, cartoes: {} };
+    let globalData = { receitas: {}, despesas: {}, cartoes: {}, investimentos: {} };
 
-    // Define mês atual por padrão no filtro
+    // Mês atual por padrão
     const today = new Date();
     const currentMonthStr = today.toISOString().slice(0, 7);
     document.getElementById("filter-mes").value = currentMonthStr;
 
-    // Função de alterar status no Firebase
+    // Funções Globais na Window para Ações dos Botões
     window.togglePago = (categoria, id, statusAtual) => {
       const itemRef = ref(db, `financas/${categoria}/${id}`);
       update(itemRef, { pago: !statusAtual });
+    };
+
+    window.excluirItem = (categoria, id) => {
+      if (confirm("Tem certeza que deseja excluir este item?")) {
+        const itemRef = ref(db, `financas/${categoria}/${id}`);
+        remove(itemRef);
+      }
+    };
+
+    window.editarItem = (categoria, id) => {
+      const item = globalData[categoria][id];
+      if (!item) return;
+
+      const novaDesc = prompt("Nova Descrição:", item.descricao);
+      if (novaDesc === null) return;
+
+      const novoValorStr = prompt("Novo Valor (R$):", item.valor);
+      if (novoValorStr === null) return;
+      const novoValor = parseFloat(novoValorStr);
+
+      const novaData = prompt("Nova Data (AAAA-MM-DD):", item.data);
+      if (novaData === null) return;
+
+      if (novaDesc && !isNaN(novoValor) && novaData) {
+        const itemRef = ref(db, `financas/${categoria}/${id}`);
+        update(itemRef, {
+          descricao: novaDesc,
+          valor: novoValor,
+          data: novaData
+        });
+      } else {
+        alert("Dados inválidos fornecidos.");
+      }
     };
 
     // 1. RECEITAS
@@ -288,7 +361,11 @@
               <span class="item-title">${item.descricao}</span>
               <span class="item-sub">Data: ${item.data}</span>
             </div>
-            <span class="item-val val-receita">+ R$ ${Number(item.valor).toFixed(2)}</span>
+            <div class="item-actions">
+              <span class="item-val val-receita">+ R$ ${Number(item.valor).toFixed(2)}</span>
+              <button class="btn-action btn-edit" onclick="editarItem('receitas', '${id}')">Editar</button>
+              <button class="btn-action btn-delete" onclick="excluirItem('receitas', '${id}')">Excluir</button>
+            </div>
           </li>`;
       });
     }
@@ -327,6 +404,8 @@
               <label class="pay-toggle">
                 <input type="checkbox" ${item.pago ? 'checked' : ''} onchange="togglePago('despesas', '${id}', ${item.pago})"> Pago
               </label>
+              <button class="btn-action btn-edit" onclick="editarItem('despesas', '${id}')">Editar</button>
+              <button class="btn-action btn-delete" onclick="excluirItem('despesas', '${id}')">Excluir</button>
             </div>
           </li>`;
       });
@@ -335,18 +414,29 @@
     // 3. CARTÕES
     document.getElementById("form-cartao").addEventListener("submit", (e) => {
       e.preventDefault();
+      const desc = document.getElementById("card-desc").value;
       const valorTotal = parseFloat(document.getElementById("card-valor").value);
-      const parcelas = parseInt(document.getElementById("card-parcelas").value);
-      
-      push(cartoesRef, {
-        descricao: document.getElementById("card-desc").value,
-        valor: valorTotal,
-        cartao: document.getElementById("card-nome").value,
-        parcelas: parcelas,
-        valorParcela: valorTotal / parcelas,
-        data: document.getElementById("card-data").value,
-        pago: false
-      });
+      const cartaoNome = document.getElementById("card-nome").value;
+      const totalParcelas = parseInt(document.getElementById("card-parcelas").value);
+      const dataInicialStr = document.getElementById("card-data").value;
+
+      const valorPorParcela = valorTotal / totalParcelas;
+
+      for (let i = 0; i < totalParcelas; i++) {
+        const [ano, mes, dia] = dataInicialStr.split('-').map(Number);
+        const dataParcela = new Date(ano, (mes - 1) + i, dia);
+        const dataFormatted = dataParcela.toISOString().slice(0, 10);
+
+        push(cartoesRef, {
+          descricao: `${desc} (${i + 1}/${totalParcelas})`,
+          valor: valorPorParcela,
+          cartao: cartaoNome,
+          parcelaAtual: i + 1,
+          totalParcelas: totalParcelas,
+          data: dataFormatted,
+          pago: false
+        });
+      }
       e.target.reset();
     });
 
@@ -364,20 +454,22 @@
         list.innerHTML += `
           <li class="${item.pago ? 'pago-status' : 'pendente-status'}">
             <div class="item-info">
-              <span class="item-title">${item.descricao} (${item.cartao})</span>
-              <span class="item-sub">Data: ${item.data} | ${item.parcelas}x de R$ ${Number(item.valorParcela).toFixed(2)}</span>
+              <span class="item-title">${item.descricao} - ${item.cartao}</span>
+              <span class="item-sub">Vencimento: ${item.data}</span>
             </div>
             <div class="item-actions">
               <span class="item-val val-cartao">R$ ${Number(item.valor).toFixed(2)}</span>
               <label class="pay-toggle">
-                <input type="checkbox" ${item.pago ? 'checked' : ''} onchange="togglePago('cartoes', '${id}', ${item.pago})"> Fatura Paga
+                <input type="checkbox" ${item.pago ? 'checked' : ''} onchange="togglePago('cartoes', '${id}', ${item.pago})"> Parcela Paga
               </label>
+              <button class="btn-action btn-edit" onclick="editarItem('cartoes', '${id}')">Editar</button>
+              <button class="btn-action btn-delete" onclick="excluirItem('cartoes', '${id}')">Excluir</button>
             </div>
           </li>`;
       });
     }
 
-    // 4. INVESTIMENTOS
+// 4. INVESTIMENTOS
     document.getElementById("form-investimento").addEventListener("submit", (e) => {
       e.preventDefault();
       push(investimentosRef, {
@@ -390,30 +482,45 @@
     });
 
     onValue(investimentosRef, (snapshot) => {
+      globalData.investimentos = snapshot.val() || {};
       const list = document.getElementById("list-investimentos");
       list.innerHTML = "";
-      const data = snapshot.val();
-      if (data) {
-        Object.values(data).forEach(item => {
-          list.innerHTML += `
-            <li>
-              <div class="item-info">
-                <span class="item-title">${item.descricao}</span>
-                <span class="item-sub">Tipo: ${item.tipo} | Data: ${item.data}</span>
-              </div>
+      Object.keys(globalData.investimentos).forEach(id => {
+        const item = globalData.investimentos[id];
+        list.innerHTML += `
+          <li>
+            <div class="item-info">
+              <span class="item-title">${item.descricao}</span>
+              <span class="item-sub">Tipo: ${item.tipo} | Data: ${item.data}</span>
+            </div>
+            <div class="item-actions">
               <span class="item-val val-invest">R$ ${Number(item.valor).toFixed(2)}</span>
-            </li>`;
-        });
-      }
+              <button class="btn-action btn-edit" onclick="editarItem('investimentos', '${id}')">Editar</button>
+              <button class="btn-action btn-delete" onclick="excluirItem('investimentos', '${id}')">Excluir</button>
+            </div>
+          </li>`;
+      });
     });
 
-    // 5. VISÃO GERAL (EVENTOS E CÁLCULOS CORRIGIDOS)
+    // 5. VISÃO GERAL & DESENHO DOS CARTÕES
     document.getElementById("filter-mes").addEventListener("change", renderGeral);
     document.getElementById("filter-status").addEventListener("change", renderGeral);
 
+    function getCardClass(nomeCartao) {
+      const nome = (nomeCartao || '').toLowerCase();
+      if (nome.includes('nubank')) return 'bg-nubank';
+      if (nome.includes('itaú') || nome.includes('itau')) return 'bg-itau';
+      if (nome.includes('inter')) return 'bg-inter';
+      if (nome.includes('bradesco')) return 'bg-bradesco';
+      if (nome.includes('santander')) return 'bg-santander';
+      return 'bg-default';
+    }
+
     function renderGeral() {
       const list = document.getElementById("list-geral");
+      const cardsWrapper = document.getElementById("cards-wrapper");
       list.innerHTML = "";
+      cardsWrapper.innerHTML = "";
 
       const mesFiltro = document.getElementById("filter-mes").value;
       const statusFiltro = document.getElementById("filter-status").value;
@@ -421,6 +528,7 @@
       let totalRec = 0;
       let totalDesp = 0;
       let todos = [];
+      let faturasPorCartao = {};
 
       Object.keys(globalData.receitas).forEach(id => {
         todos.push({ ...globalData.receitas[id], id, cat: 'receitas', badge: 'badge-receita', tipoNome: 'Receita' });
@@ -441,10 +549,17 @@
 
         if (passaMes && passaStatus) {
           const valNum = Number(item.valor) || 0;
+          
           if (item.cat === 'receitas') {
             totalRec += valNum;
           } else {
             totalDesp += valNum;
+          }
+
+          // Agrupa totais dos Cartões para gerar os visuais
+          if (item.cat === 'cartoes' && item.cartao) {
+            const nomeCard = item.cartao.trim();
+            faturasPorCartao[nomeCard] = (faturasPorCartao[nomeCard] || 0) + valNum;
           }
 
           list.innerHTML += `
@@ -464,10 +579,31 @@
                   <input type="checkbox" ${item.pago ? 'checked' : ''} onchange="togglePago('${item.cat}', '${item.id}', ${item.pago})"> 
                   ${item.pago ? 'Pago/Recebido' : 'Pendente'}
                 </label>
+                <button class="btn-action btn-edit" onclick="editarItem('${item.cat}', '${item.id}')">Editar</button>
+                <button class="btn-action btn-delete" onclick="excluirItem('${item.cat}', '${item.id}')">Excluir</button>
               </div>
             </li>`;
         }
       });
+
+      // Renderiza os Cards Visuais dos Cartões
+      const cartoesNomes = Object.keys(faturasPorCartao);
+      if (cartoesNomes.length === 0) {
+        cardsWrapper.innerHTML = `<p style="color: #777; font-size: 14px;">Nenhuma fatura de cartão para este mês.</p>`;
+      } else {
+        cartoesNomes.forEach(nomeCard => {
+          const totalFatura = faturasPorCartao[nomeCard];
+          const bgClass = getCardClass(nomeCard);
+          cardsWrapper.innerHTML += `
+            <div class="credit-card ${bgClass}">
+              <div class="card-brand">${nomeCard}</div>
+              <div>
+                <div class="card-label">Fatura Mês</div>
+                <div class="card-amount">R$ ${totalFatura.toFixed(2)}</div>
+              </div>
+            </div>`;
+        });
+      }
 
       document.getElementById("total-receitas").innerText = `R$ ${totalRec.toFixed(2)}`;
       document.getElementById("total-despesas").innerText = `R$ ${totalDesp.toFixed(2)}`;
