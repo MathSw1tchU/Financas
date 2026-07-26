@@ -5,209 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Meu Controle Financeiro</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: #f4f7f6; color: #333; padding: 20px; }
+    .container { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 8px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    h1 { text-align: center; margin-bottom: 20px; color: #2c3e50; }
+    
+    .nav-tabs { display: flex; gap: 10px; border-bottom: 2px solid #ddd; margin-bottom: 20px; overflow-x: auto; }
+    .tab-button { padding: 10px 15px; border: none; background: none; font-size: 15px; font-weight: bold; cursor: pointer; color: #666; border-bottom: 3px solid transparent; transition: all 0.3s ease; white-space: nowrap; }
+    .tab-button.active { color: #27ae60; border-bottom-color: #27ae60; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
 
-    body {
-      background-color: #f4f7f6;
-      color: #333;
-      padding: 20px;
-    }
+    form, .filter-box { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; background: #f9f9f9; padding: 15px; border-radius: 6px; }
+    .filter-box { grid-template-columns: 1fr 1fr; align-items: center; }
+    .input-group { display: flex; flex-direction: column; gap: 5px; }
+    .input-group.full { grid-column: span 2; }
+    label { font-size: 14px; font-weight: 600; color: #555; }
+    input, select, button { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 15px; }
+    button.btn-submit { grid-column: span 2; background-color: #27ae60; color: white; border: none; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+    button.btn-submit:hover { background-color: #219150; }
 
-    .container {
-      max-width: 900px;
-      margin: 0 auto;
-      background: #fff;
-      border-radius: 8px;
-      padding: 25px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #2c3e50;
-    }
-
-    /* Navegação por Abas */
-    .nav-tabs {
-      display: flex;
-      gap: 10px;
-      border-bottom: 2px solid #ddd;
-      margin-bottom: 20px;
-      overflow-x: auto;
-    }
-
-    .tab-button {
-      padding: 10px 15px;
-      border: none;
-      background: none;
-      font-size: 15px;
-      font-weight: bold;
-      cursor: pointer;
-      color: #666;
-      border-bottom: 3px solid transparent;
-      transition: all 0.3s ease;
-      white-space: nowrap;
-    }
-
-    .tab-button.active {
-      color: #27ae60;
-      border-bottom-color: #27ae60;
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    /* Formulários e Filtros */
-    form, .filter-box {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 15px;
-      margin-bottom: 25px;
-      background: #f9f9f9;
-      padding: 15px;
-      border-radius: 6px;
-    }
-
-    .filter-box {
-      grid-template-columns: 1fr 1fr;
-      align-items: center;
-    }
-
-    .input-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .input-group.full {
-      grid-column: span 2;
-    }
-
-    label {
-      font-size: 14px;
-      font-weight: 600;
-      color: #555;
-    }
-
-    input, select, button {
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      font-size: 15px;
-    }
-
-    button.btn-submit {
-      grid-column: span 2;
-      background-color: #27ae60;
-      color: white;
-      border: none;
-      font-weight: bold;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-
-    button.btn-submit:hover {
-      background-color: #219150;
-    }
-
-    /* Listas e Resumo */
-    ul {
-      list-style: none;
-    }
-
-    li {
-      background: #fff;
-      border: 1px solid #e0e0e0;
-      padding: 12px 15px;
-      margin-bottom: 10px;
-      border-radius: 5px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    li.pago-status {
-      border-left: 5px solid #27ae60;
-      background: #f0fff4;
-    }
-
-    li.pendente-status {
-      border-left: 5px solid #e74c3c;
-    }
-
-    .item-info {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .item-title {
-      font-weight: bold;
-      color: #333;
-    }
-
-    .item-sub {
-      font-size: 12px;
-      color: #777;
-    }
-
-    .item-actions {
-      display: flex;
-      align-items: center;
-      gap: 15px;
-    }
-
-    .item-val {
-      font-weight: bold;
-      font-size: 16px;
-    }
-
+    ul { list-style: none; }
+    li { background: #fff; border: 1px solid #e0e0e0; padding: 12px 15px; margin-bottom: 10px; border-radius: 5px; display: flex; justify-content: space-between; align-items: center; }
+    li.pago-status { border-left: 5px solid #27ae60; background: #f0fff4; }
+    li.pendente-status { border-left: 5px solid #e74c3c; }
+    .item-info { display: flex; flex-direction: column; }
+    .item-title { font-weight: bold; color: #333; }
+    .item-sub { font-size: 12px; color: #777; }
+    .item-actions { display: flex; align-items: center; gap: 15px; }
+    .item-val { font-weight: bold; font-size: 16px; }
     .val-receita { color: #27ae60; }
     .val-despesa { color: #e74c3c; }
     .val-cartao { color: #e67e22; }
     .val-invest { color: #2980b9; }
 
-    .badge-tipo {
-      font-size: 10px;
-      padding: 2px 6px;
-      border-radius: 4px;
-      color: white;
-      text-transform: uppercase;
-      font-weight: bold;
-      margin-left: 5px;
-    }
+    .badge-tipo { font-size: 10px; padding: 2px 6px; border-radius: 4px; color: white; text-transform: uppercase; font-weight: bold; margin-left: 5px; }
     .badge-receita { background-color: #27ae60; }
     .badge-despesa { background-color: #e74c3c; }
     .badge-cartao { background-color: #e67e22; }
 
-    .pay-toggle {
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 13px;
-      font-weight: bold;
-    }
-
-    .resumo-card {
-      background: #eef2f5;
-      padding: 15px;
-      border-radius: 6px;
-      margin-bottom: 20px;
-      display: flex;
-      justify-content: space-around;
-      font-weight: bold;
-    }
+    .pay-toggle { cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: bold; }
+    .resumo-card { background: #eef2f5; padding: 15px; border-radius: 6px; margin-bottom: 20px; display: flex; justify-content: space-around; font-weight: bold; }
 
     @media (max-width: 600px) {
       form, .filter-box { grid-template-columns: 1fr; }
@@ -222,7 +60,6 @@
   <div class="container">
     <h1>Controle Financeiro Personalizado</h1>
 
-    <!-- Menu de Navegação por Abas -->
     <div class="nav-tabs">
       <button class="tab-button active" data-tab="tab-geral">Visão Geral / Filtros</button>
       <button class="tab-button" data-tab="tab-receitas">Receitas</button>
@@ -231,7 +68,7 @@
       <button class="tab-button" data-tab="tab-investimentos">Investimentos</button>
     </div>
 
-    <!-- ABA VISÃO GERAL / FILTROS -->
+    <!-- ABA VISÃO GERAL -->
     <div id="tab-geral" class="tab-content active">
       <h2>Filtrar Lançamentos</h2>
       <div class="filter-box">
@@ -277,7 +114,6 @@
         </div>
         <button type="submit" class="btn-submit">Salvar Receita</button>
       </form>
-
       <h3>Minhas Receitas</h3>
       <ul id="list-receitas"></ul>
     </div>
@@ -300,12 +136,11 @@
         </div>
         <button type="submit" class="btn-submit">Salvar Despesa</button>
       </form>
-
       <h3>Minhas Despesas</h3>
       <ul id="list-despesas"></ul>
     </div>
 
-    <!-- ABA CARTÕES DE CRÉDITO -->
+    <!-- ABA CARTÕES -->
     <div id="tab-cartoes" class="tab-content">
       <h2>Compra no Cartão</h2>
       <form id="form-cartao">
@@ -331,7 +166,6 @@
         </div>
         <button type="submit" class="btn-submit">Salvar Compra</button>
       </form>
-
       <h3>Compras no Cartão</h3>
       <ul id="list-cartoes"></ul>
     </div>
@@ -364,14 +198,13 @@
         </div>
         <button type="submit" class="btn-submit">Salvar Investimento</button>
       </form>
-
       <h3>Carteira de Investimentos</h3>
       <ul id="list-investimentos"></ul>
     </div>
 
   </div>
 
-  <!-- NAVEGAÇÃO DE ABAS SEM INLINE ONCLICK -->
+  <!-- NAVEGAÇÃO -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const buttons = document.querySelectorAll(".tab-button");
@@ -380,10 +213,8 @@
       buttons.forEach(btn => {
         btn.addEventListener("click", () => {
           const targetTab = btn.getAttribute("data-tab");
-
           buttons.forEach(b => b.classList.remove("active"));
           contents.forEach(c => c.classList.remove("active"));
-
           btn.classList.add("active");
           document.getElementById(targetTab).classList.add("active");
         });
@@ -391,7 +222,7 @@
     });
   </script>
 
-  <!-- FIREBASE & LÓGICA DO SISTEMA -->
+  <!-- FIREBASE & SCRIPT COMPLETO -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -417,18 +248,18 @@
 
     let globalData = { receitas: {}, despesas: {}, cartoes: {} };
 
-    // Definir Mês Atual no Filtro
+    // Define mês atual por padrão no filtro
     const today = new Date();
     const currentMonthStr = today.toISOString().slice(0, 7);
     document.getElementById("filter-mes").value = currentMonthStr;
 
-    // Função para alterar Status de Pago
+    // Função de alterar status no Firebase
     window.togglePago = (categoria, id, statusAtual) => {
       const itemRef = ref(db, `financas/${categoria}/${id}`);
       update(itemRef, { pago: !statusAtual });
     };
 
-    // 1. Receitas
+    // 1. RECEITAS
     document.getElementById("form-receita").addEventListener("submit", (e) => {
       e.preventDefault();
       push(receitasRef, {
@@ -457,12 +288,12 @@
               <span class="item-title">${item.descricao}</span>
               <span class="item-sub">Data: ${item.data}</span>
             </div>
-            <span class="item-val val-receita">+ R$ ${item.valor.toFixed(2)}</span>
+            <span class="item-val val-receita">+ R$ ${Number(item.valor).toFixed(2)}</span>
           </li>`;
       });
     }
 
-    // 2. Despesas
+    // 2. DESPESAS
     document.getElementById("form-despesa").addEventListener("submit", (e) => {
       e.preventDefault();
       push(despesasRef, {
@@ -492,7 +323,7 @@
               <span class="item-sub">Vencimento: ${item.data}</span>
             </div>
             <div class="item-actions">
-              <span class="item-val val-despesa">- R$ ${item.valor.toFixed(2)}</span>
+              <span class="item-val val-despesa">- R$ ${Number(item.valor).toFixed(2)}</span>
               <label class="pay-toggle">
                 <input type="checkbox" ${item.pago ? 'checked' : ''} onchange="togglePago('despesas', '${id}', ${item.pago})"> Pago
               </label>
@@ -501,7 +332,7 @@
       });
     }
 
-    // 3. Cartões
+    // 3. CARTÕES
     document.getElementById("form-cartao").addEventListener("submit", (e) => {
       e.preventDefault();
       const valorTotal = parseFloat(document.getElementById("card-valor").value);
@@ -534,10 +365,10 @@
           <li class="${item.pago ? 'pago-status' : 'pendente-status'}">
             <div class="item-info">
               <span class="item-title">${item.descricao} (${item.cartao})</span>
-              <span class="item-sub">Data: ${item.data} | ${item.parcelas}x de R$ ${item.valorParcela.toFixed(2)}</span>
+              <span class="item-sub">Data: ${item.data} | ${item.parcelas}x de R$ ${Number(item.valorParcela).toFixed(2)}</span>
             </div>
             <div class="item-actions">
-              <span class="item-val val-cartao">R$ ${item.valor.toFixed(2)}</span>
+              <span class="item-val val-cartao">R$ ${Number(item.valor).toFixed(2)}</span>
               <label class="pay-toggle">
                 <input type="checkbox" ${item.pago ? 'checked' : ''} onchange="togglePago('cartoes', '${id}', ${item.pago})"> Fatura Paga
               </label>
@@ -546,7 +377,7 @@
       });
     }
 
-    // 4. Investimentos
+    // 4. INVESTIMENTOS
     document.getElementById("form-investimento").addEventListener("submit", (e) => {
       e.preventDefault();
       push(investimentosRef, {
@@ -570,13 +401,13 @@
                 <span class="item-title">${item.descricao}</span>
                 <span class="item-sub">Tipo: ${item.tipo} | Data: ${item.data}</span>
               </div>
-              <span class="item-val val-invest">R$ ${item.valor.toFixed(2)}</span>
+              <span class="item-val val-invest">R$ ${Number(item.valor).toFixed(2)}</span>
             </li>`;
         });
       }
     });
 
-    // 5. Visão Geral
+    // 5. VISÃO GERAL (EVENTOS E CÁLCULOS CORRIGIDOS)
     document.getElementById("filter-mes").addEventListener("change", renderGeral);
     document.getElementById("filter-status").addEventListener("change", renderGeral);
 
@@ -589,7 +420,6 @@
 
       let totalRec = 0;
       let totalDesp = 0;
-
       let todos = [];
 
       Object.keys(globalData.receitas).forEach(id => {
@@ -610,10 +440,11 @@
                             (statusFiltro === 'pendente' && !item.pago);
 
         if (passaMes && passaStatus) {
+          const valNum = Number(item.valor) || 0;
           if (item.cat === 'receitas') {
-            totalRec += item.valor;
+            totalRec += valNum;
           } else {
-            totalDesp += item.valor;
+            totalDesp += valNum;
           }
 
           list.innerHTML += `
@@ -627,8 +458,25 @@
               </div>
               <div class="item-actions">
                 <span class="item-val ${item.cat === 'receitas' ? 'val-receita' : 'val-despesa'}">
-                  ${item.cat === 'receitas' ? '+' : '-'} R$ ${item.valor.toFixed(2)}
+                  ${item.cat === 'receitas' ? '+' : '-'} R$ ${valNum.toFixed(2)}
                 </span>
                 <label class="pay-toggle">
                   <input type="checkbox" ${item.pago ? 'checked' : ''} onchange="togglePago('${item.cat}', '${item.id}', ${item.pago})"> 
-           
+                  ${item.pago ? 'Pago/Recebido' : 'Pendente'}
+                </label>
+              </div>
+            </li>`;
+        }
+      });
+
+      document.getElementById("total-receitas").innerText = `R$ ${totalRec.toFixed(2)}`;
+      document.getElementById("total-despesas").innerText = `R$ ${totalDesp.toFixed(2)}`;
+      
+      const saldo = totalRec - totalDesp;
+      const saldoElem = document.getElementById("saldo-mes");
+      saldoElem.innerText = `R$ ${saldo.toFixed(2)}`;
+      saldoElem.className = saldo >= 0 ? "val-receita" : "val-despesa";
+    }
+  </script>
+</body>
+</html>
