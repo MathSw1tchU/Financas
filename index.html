@@ -7,8 +7,9 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: #f4f7f6; color: #333; padding: 20px; }
-    .container { max-width: 900px; margin: 0 auto; background: #fff; border-radius: 8px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .container { max-width: 950px; margin: 0 auto; background: #fff; border-radius: 8px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     h1 { text-align: center; margin-bottom: 20px; color: #2c3e50; }
+    h3 { margin: 15px 0 10px 0; color: #34495e; }
     
     /* Navegação por Abas */
     .nav-tabs { display: flex; gap: 10px; border-bottom: 2px solid #ddd; margin-bottom: 20px; overflow-x: auto; }
@@ -19,7 +20,7 @@
 
     /* Formulários e Filtros */
     form, .filter-box { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px; background: #f9f9f9; padding: 15px; border-radius: 6px; }
-    .filter-box { grid-template-columns: 1fr 1fr; align-items: center; }
+    .filter-box { grid-template-columns: 1fr 1fr 1fr; align-items: center; }
     .input-group { display: flex; flex-direction: column; gap: 5px; }
     .input-group.full { grid-column: span 2; }
     label { font-size: 14px; font-weight: 600; color: #555; }
@@ -42,7 +43,7 @@
     .val-cartao { color: #e67e22; }
     .val-invest { color: #2980b9; }
 
-    /* Botões de Ação (Editar e Excluir) */
+    /* Botões de Ação */
     .btn-action { padding: 5px 8px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
     .btn-edit { background-color: #3498db; color: white; }
     .btn-delete { background-color: #e74c3c; color: white; }
@@ -55,39 +56,46 @@
     .pay-toggle { cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: bold; }
     .resumo-card { background: #eef2f5; padding: 15px; border-radius: 6px; margin-bottom: 20px; display: flex; justify-content: space-around; font-weight: bold; }
 
-    /* Visualização Visual dos Cartões de Crédito */
-    .cards-container { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 25px; }
-    .credit-card {
-      width: 240px;
-      height: 140px;
+    /* Visualização Visual dos Cartões / Categorias */
+    .cards-container { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
+    .dashboard-card {
+      width: 220px;
+      height: 120px;
       border-radius: 12px;
       padding: 15px;
       color: white;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
       transition: transform 0.2s;
     }
-    .credit-card:hover { transform: translateY(-3px); }
-    .card-brand { font-size: 18px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
-    .card-label { font-size: 11px; opacity: 0.8; text-transform: uppercase; }
-    .card-amount { font-size: 22px; font-weight: bold; }
+    .dashboard-card:hover { transform: translateY(-3px); }
+    .card-brand { font-size: 16px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
+    .card-label { font-size: 11px; opacity: 0.85; text-transform: uppercase; }
+    .card-amount { font-size: 20px; font-weight: bold; }
 
-    /* Cores Personalizadas para Bancos/Cartões */
+    /* Cores dos Cartões e Categorias Especializadas */
+    .bg-refeicao { background: linear-gradient(135deg, #2ecc71, #27ae60); }     /* Verde Claro */
+    .bg-alimentacao { background: linear-gradient(135deg, #1e824c, #145a32); }  /* Verde Escuro */
+    .bg-contas { background: linear-gradient(135deg, #e74c3c, #c0392b); }       /* Vermelho */
+
+    /* Bancos */
     .bg-nubank { background: linear-gradient(135deg, #8a05be, #530082); }
     .bg-itau { background: linear-gradient(135deg, #ec7000, #b35300); }
     .bg-inter { background: linear-gradient(135deg, #ff7a00, #cc6200); }
     .bg-bradesco { background: linear-gradient(135deg, #cc092f, #99001f); }
     .bg-santander { background: linear-gradient(135deg, #ec0000, #a30000); }
-    .bg-default { background: linear-gradient(135deg, #2c3e50, #1a252f); }
+    .bg-c6 { background: linear-gradient(135deg, #333333, #111111); }
+    .bg-xp { background: linear-gradient(135deg, #232323, #000000); }
+    .bg-default { background: linear-gradient(135deg, #34495e, #2c3e50); }
 
     @media (max-width: 600px) {
       form, .filter-box { grid-template-columns: 1fr; }
       .input-group.full { grid-column: span 1; }
       button.btn-submit { grid-column: span 1; }
       .resumo-card { flex-direction: column; gap: 10px; }
-      .credit-card { width: 100%; }
+      .dashboard-card { width: 100%; }
     }
   </style>
 </head>
@@ -106,14 +114,18 @@
 
     <!-- ABA VISÃO GERAL -->
     <div id="tab-geral" class="tab-content active">
-      <h2>Filtrar Lançamentos</h2>
+      <h2>Filtrar Lançamentos por Período</h2>
       <div class="filter-box">
         <div class="input-group">
-          <label>Mês / Ano</label>
-          <input type="month" id="filter-mes">
+          <label>Mês Inicial</label>
+          <input type="month" id="filter-mes-inicio">
         </div>
         <div class="input-group">
-          <label>Status de Pagamento</label>
+          <label>Mês Final</label>
+          <input type="month" id="filter-mes-fim">
+        </div>
+        <div class="input-group">
+          <label>Status</label>
           <select id="filter-status">
             <option value="todos">Todos os Status</option>
             <option value="pago">Apenas Pagos/Recebidos</option>
@@ -125,11 +137,14 @@
       <div class="resumo-card">
         <div>Receitas: <span id="total-receitas" class="val-receita">R$ 0,00</span></div>
         <div>Saídas/Cartão: <span id="total-despesas" class="val-despesa">R$ 0,00</span></div>
-        <div>Saldo Mês: <span id="saldo-mes">R$ 0,00</span></div>
+        <div>Saldo Período: <span id="saldo-mes">R$ 0,00</span></div>
       </div>
 
-      <!-- Faturas dos Cartões do Mês -->
-      <h3>Faturas do Mês (Cartões)</h3>
+      <!-- CARDS DE CATEGORIAS E CARTÕES NO PERÍODO -->
+      <h3>Resumo Visual de Categorias</h3>
+      <div id="category-cards-wrapper" class="cards-container"></div>
+
+      <h3>Faturas dos Cartões no Período</h3>
       <div id="cards-wrapper" class="cards-container"></div>
 
       <h3>Histórico Filtrado</h3>
@@ -142,13 +157,21 @@
       <form id="form-receita">
         <div class="input-group">
           <label>Descrição</label>
-          <input type="text" id="rec-desc" placeholder="Ex: Salário, Freela" required>
+          <input type="text" id="rec-desc" placeholder="Ex: Salário, VR, VA" required>
         </div>
         <div class="input-group">
           <label>Valor (R$)</label>
           <input type="number" id="rec-valor" step="0.01" placeholder="0.00" required>
         </div>
-        <div class="input-group full">
+        <div class="input-group">
+          <label>Categoria</label>
+          <select id="rec-categoria">
+            <option value="Geral">Receita Geral / Salário</option>
+            <option value="Refeição">Refeição (VR)</option>
+            <option value="Alimentação">Alimentação (VA)</option>
+          </select>
+        </div>
+        <div class="input-group">
           <label>Data Prevista / Recebida</label>
           <input type="date" id="rec-data" required>
         </div>
@@ -160,11 +183,11 @@
 
     <!-- ABA DESPESAS -->
     <div id="tab-despesas" class="tab-content">
-      <h2>Lançar Despesa</h2>
+      <h2>Lançar Despesa / Conta</h2>
       <form id="form-despesa">
         <div class="input-group">
           <label>Descrição</label>
-          <input type="text" id="desp-desc" placeholder="Ex: Aluguel, Mercado" required>
+          <input type="text" id="desp-desc" placeholder="Ex: Conta de Luz, Aluguel" required>
         </div>
         <div class="input-group">
           <label>Valor (R$)</label>
@@ -176,7 +199,7 @@
         </div>
         <button type="submit" class="btn-submit">Salvar Despesa</button>
       </form>
-      <h3>Minhas Despesas</h3>
+      <h3>Minhas Despesas / Contas</h3>
       <ul id="list-despesas"></ul>
     </div>
 
@@ -186,22 +209,35 @@
       <form id="form-cartao">
         <div class="input-group">
           <label>Descrição da Compra</label>
-          <input type="text" id="card-desc" placeholder="Ex: Eletrônicos" required>
+          <input type="text" id="card-desc" placeholder="Ex: Eletrônicos, Mercado" required>
         </div>
         <div class="input-group">
           <label>Valor Total (R$)</label>
           <input type="number" id="card-valor" step="0.01" placeholder="0.00" required>
         </div>
         <div class="input-group">
-          <label>Nome do Cartão (ex: Nubank, Itaú)</label>
-          <input type="text" id="card-nome" placeholder="Ex: Nubank" required>
+          <label>Selecione o Cartão</label>
+          <select id="card-nome-select">
+            <option value="Nubank">Nubank</option>
+            <option value="Itaú">Itaú</option>
+            <option value="Inter">Inter</option>
+            <option value="Bradesco">Bradesco</option>
+            <option value="Santander">Santander</option>
+            <option value="C6 Bank">C6 Bank</option>
+            <option value="XP">XP</option>
+            <option value="outro">Outro (Personalizado)...</option>
+          </select>
+        </div>
+        <div class="input-group" id="group-card-custom" style="display: none;">
+          <label>Nome do Cartão Personalizado</label>
+          <input type="text" id="card-nome-custom" placeholder="Ex: Banco do Brasil">
         </div>
         <div class="input-group">
           <label>Nº de Parcelas</label>
           <input type="number" id="card-parcelas" min="1" value="1" required>
         </div>
-        <div class="input-group full">
-          <label>Data da Primeira Parcela</label>
+        <div class="input-group">
+          <label>Data da 1ª Parcela</label>
           <input type="date" id="card-data" required>
         </div>
         <button type="submit" class="btn-submit">Salvar Compra</button>
@@ -244,9 +280,10 @@
 
   </div>
 
-  <!-- NAVEGAÇÃO -->
+  <!-- NAVEGAÇÃO & EVENTOS DA INTERFACE -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
+      // Abas
       const buttons = document.querySelectorAll(".tab-button");
       const contents = document.querySelectorAll(".tab-content");
 
@@ -259,10 +296,21 @@
           document.getElementById(targetTab).classList.add("active");
         });
       });
+
+      // Alternar campo de cartão personalizado
+      const selectCard = document.getElementById("card-nome-select");
+      const customCardGroup = document.getElementById("group-card-custom");
+      selectCard.addEventListener("change", () => {
+        if (selectCard.value === "outro") {
+          customCardGroup.style.display = "flex";
+        } else {
+          customCardGroup.style.display = "none";
+        }
+      });
     });
   </script>
 
-  <!-- FIREBASE & LÓGICA -->
+  <!-- FIREBASE & LÓGICA DO APP -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -288,12 +336,13 @@
 
     let globalData = { receitas: {}, despesas: {}, cartoes: {}, investimentos: {} };
 
-    // Mês atual por padrão
+    // Define mês atual por padrão para os filtros de início e fim
     const today = new Date();
     const currentMonthStr = today.toISOString().slice(0, 7);
-    document.getElementById("filter-mes").value = currentMonthStr;
+    document.getElementById("filter-mes-inicio").value = currentMonthStr;
+    document.getElementById("filter-mes-fim").value = currentMonthStr;
 
-    // Funções Globais na Window para Ações dos Botões
+    // Métodos Globais para os Botões
     window.togglePago = (categoria, id, statusAtual) => {
       const itemRef = ref(db, `financas/${categoria}/${id}`);
       update(itemRef, { pago: !statusAtual });
@@ -328,7 +377,7 @@
           data: novaData
         });
       } else {
-        alert("Dados inválidos fornecidos.");
+        alert("Preencha todos os dados corretamente.");
       }
     };
 
@@ -338,6 +387,7 @@
       push(receitasRef, {
         descricao: document.getElementById("rec-desc").value,
         valor: parseFloat(document.getElementById("rec-valor").value),
+        categoria: document.getElementById("rec-categoria").value,
         data: document.getElementById("rec-data").value,
         pago: true
       });
@@ -355,10 +405,11 @@
       list.innerHTML = "";
       Object.keys(globalData.receitas).forEach(id => {
         const item = globalData.receitas[id];
+        const catText = item.categoria ? ` (${item.categoria})` : '';
         list.innerHTML += `
           <li>
             <div class="item-info">
-              <span class="item-title">${item.descricao}</span>
+              <span class="item-title">${item.descricao}${catText}</span>
               <span class="item-sub">Data: ${item.data}</span>
             </div>
             <div class="item-actions">
@@ -416,7 +467,12 @@
       e.preventDefault();
       const desc = document.getElementById("card-desc").value;
       const valorTotal = parseFloat(document.getElementById("card-valor").value);
-      const cartaoNome = document.getElementById("card-nome").value;
+      
+      const selectCard = document.getElementById("card-nome-select").value;
+      const cartaoNome = selectCard === "outro" 
+        ? document.getElementById("card-nome-custom").value 
+        : selectCard;
+
       const totalParcelas = parseInt(document.getElementById("card-parcelas").value);
       const dataInicialStr = document.getElementById("card-data").value;
 
@@ -438,6 +494,7 @@
         });
       }
       e.target.reset();
+      document.getElementById("group-card-custom").style.display = "none";
     });
 
     onValue(cartoesRef, (snapshot) => {
@@ -469,7 +526,7 @@
       });
     }
 
-// 4. INVESTIMENTOS
+    // 4. INVESTIMENTOS
     document.getElementById("form-investimento").addEventListener("submit", (e) => {
       e.preventDefault();
       push(investimentosRef, {
@@ -502,8 +559,9 @@
       });
     });
 
-    // 5. VISÃO GERAL & DESENHO DOS CARTÕES
-    document.getElementById("filter-mes").addEventListener("change", renderGeral);
+    // 5. VISÃO GERAL, PERÍODO E CARDS DIVERSOS
+    document.getElementById("filter-mes-inicio").addEventListener("change", renderGeral);
+    document.getElementById("filter-mes-fim").addEventListener("change", renderGeral);
     document.getElementById("filter-status").addEventListener("change", renderGeral);
 
     function getCardClass(nomeCartao) {
@@ -513,20 +571,31 @@
       if (nome.includes('inter')) return 'bg-inter';
       if (nome.includes('bradesco')) return 'bg-bradesco';
       if (nome.includes('santander')) return 'bg-santander';
+      if (nome.includes('c6')) return 'bg-c6';
+      if (nome.includes('xp')) return 'bg-xp';
       return 'bg-default';
     }
 
     function renderGeral() {
       const list = document.getElementById("list-geral");
       const cardsWrapper = document.getElementById("cards-wrapper");
+      const catCardsWrapper = document.getElementById("category-cards-wrapper");
+
       list.innerHTML = "";
       cardsWrapper.innerHTML = "";
+      catCardsWrapper.innerHTML = "";
 
-      const mesFiltro = document.getElementById("filter-mes").value;
+      const mesInicio = document.getElementById("filter-mes-inicio").value;
+      const mesFim = document.getElementById("filter-mes-fim").value;
       const statusFiltro = document.getElementById("filter-status").value;
 
       let totalRec = 0;
       let totalDesp = 0;
+
+      let totalRefeicao = 0;
+      let totalAlimentacao = 0;
+      let totalContas = 0;
+
       let todos = [];
       let faturasPorCartao = {};
 
@@ -542,7 +611,12 @@
 
       todos.forEach(item => {
         const itemMes = item.data ? item.data.slice(0, 7) : '';
-        const passaMes = !mesFiltro || itemMes === mesFiltro;
+        
+        // Validação do intervalo de meses
+        const passaInicio = !mesInicio || itemMes >= mesInicio;
+        const passaFim = !mesFim || itemMes <= mesFim;
+        const passaMes = passaInicio && passaFim;
+
         const passaStatus = statusFiltro === 'todos' || 
                             (statusFiltro === 'pago' && item.pago) || 
                             (statusFiltro === 'pendente' && !item.pago);
@@ -552,14 +626,17 @@
           
           if (item.cat === 'receitas') {
             totalRec += valNum;
-          } else {
+            if (item.categoria === 'Refeição') totalRefeicao += valNum;
+            if (item.categoria === 'Alimentação') totalAlimentacao += valNum;
+          } else if (item.cat === 'despesas') {
             totalDesp += valNum;
-          }
-
-          // Agrupa totais dos Cartões para gerar os visuais
-          if (item.cat === 'cartoes' && item.cartao) {
-            const nomeCard = item.cartao.trim();
-            faturasPorCartao[nomeCard] = (faturasPorCartao[nomeCard] || 0) + valNum;
+            totalContas += valNum;
+          } else if (item.cat === 'cartoes') {
+            totalDesp += valNum;
+            if (item.cartao) {
+              const nomeCard = item.cartao.trim();
+              faturasPorCartao[nomeCard] = (faturasPorCartao[nomeCard] || 0) + valNum;
+            }
           }
 
           list.innerHTML += `
@@ -586,19 +663,44 @@
         }
       });
 
-      // Renderiza os Cards Visuais dos Cartões
+      // Renderiza Cards das Categorias Solicitadas
+      catCardsWrapper.innerHTML = `
+        <div class="dashboard-card bg-refeicao">
+          <div class="card-brand">Refeição (VR)</div>
+          <div>
+            <div class="card-label">Total Recebido</div>
+            <div class="card-amount">R$ ${totalRefeicao.toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="dashboard-card bg-alimentacao">
+          <div class="card-brand">Alimentação (VA)</div>
+          <div>
+            <div class="card-label">Total Recebido</div>
+            <div class="card-amount">R$ ${totalAlimentacao.toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="dashboard-card bg-contas">
+          <div class="card-brand">Contas / Despesas</div>
+          <div>
+            <div class="card-label">Total a Pagar</div>
+            <div class="card-amount">R$ ${totalContas.toFixed(2)}</div>
+          </div>
+        </div>
+      `;
+
+      // Renderiza os Cards dos Cartões no Período
       const cartoesNomes = Object.keys(faturasPorCartao);
       if (cartoesNomes.length === 0) {
-        cardsWrapper.innerHTML = `<p style="color: #777; font-size: 14px;">Nenhuma fatura de cartão para este mês.</p>`;
+        cardsWrapper.innerHTML = `<p style="color: #777; font-size: 14px;">Nenhuma fatura de cartão para este período.</p>`;
       } else {
         cartoesNomes.forEach(nomeCard => {
           const totalFatura = faturasPorCartao[nomeCard];
           const bgClass = getCardClass(nomeCard);
           cardsWrapper.innerHTML += `
-            <div class="credit-card ${bgClass}">
+            <div class="dashboard-card ${bgClass}">
               <div class="card-brand">${nomeCard}</div>
               <div>
-                <div class="card-label">Fatura Mês</div>
+                <div class="card-label">Total no Período</div>
                 <div class="card-amount">R$ ${totalFatura.toFixed(2)}</div>
               </div>
             </div>`;
