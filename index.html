@@ -7,7 +7,7 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
     body { background-color: #f4f7f6; color: #333; padding: 20px; }
-    .container { max-width: 950px; margin: 0 auto; background: #fff; border-radius: 8px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .container { max-width: 1000px; margin: 0 auto; background: #fff; border-radius: 8px; padding: 25px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     h1 { text-align: center; margin-bottom: 20px; color: #2c3e50; }
     h3 { margin: 15px 0 10px 0; color: #34495e; }
     
@@ -75,10 +75,17 @@
     .card-label { font-size: 11px; opacity: 0.85; text-transform: uppercase; }
     .card-amount { font-size: 20px; font-weight: bold; }
 
-    /* Cores dos Cartões e Categorias Especializadas */
-    .bg-refeicao { background: linear-gradient(135deg, #2ecc71, #27ae60); }     /* Verde Claro */
-    .bg-alimentacao { background: linear-gradient(135deg, #1e824c, #145a32); }  /* Verde Escuro */
-    .bg-contas { background: linear-gradient(135deg, #e74c3c, #c0392b); }       /* Vermelho */
+    /* Cores das Categorias */
+    .bg-refeicao { background: linear-gradient(135deg, #2ecc71, #27ae60); }
+    .bg-alimentacao { background: linear-gradient(135deg, #1e824c, #145a32); }
+    .bg-contas { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+
+    /* Cores dos Investimentos */
+    .bg-inv-total { background: linear-gradient(135deg, #2c3e50, #1a252f); }
+    .bg-renda-fixa { background: linear-gradient(135deg, #2980b9, #1f618d); }
+    .bg-renda-variavel { background: linear-gradient(135deg, #8e44ad, #6c3483); }
+    .bg-cripto { background: linear-gradient(135deg, #f39c12, #d68910); }
+    .bg-reserva { background: linear-gradient(135deg, #16a085, #117864); }
 
     /* Bancos */
     .bg-nubank { background: linear-gradient(135deg, #8a05be, #530082); }
@@ -140,7 +147,11 @@
         <div>Saldo Período: <span id="saldo-mes">R$ 0,00</span></div>
       </div>
 
-      <!-- CARDS DE CATEGORIAS E CARTÕES NO PERÍODO -->
+      <!-- CARDS DE INVESTIMENTOS -->
+      <h3>Patrimônio Investido</h3>
+      <div id="invest-cards-wrapper" class="cards-container"></div>
+
+      <!-- CARDS DE CATEGORIAS E CARTÕES -->
       <h3>Resumo Visual de Categorias</h3>
       <div id="category-cards-wrapper" class="cards-container"></div>
 
@@ -252,7 +263,7 @@
       <form id="form-investimento">
         <div class="input-group">
           <label>Ativo / Aplicação</label>
-          <input type="text" id="inv-desc" placeholder="Ex: Tesouro Selic, CDB" required>
+          <input type="text" id="inv-desc" placeholder="Ex: Tesouro Selic, PETR4, Bitcoin" required>
         </div>
         <div class="input-group">
           <label>Valor Aplicado (R$)</label>
@@ -261,10 +272,10 @@
         <div class="input-group">
           <label>Tipo de Investimento</label>
           <select id="inv-tipo">
-            <option value="Renda Fixa">Renda Fixa</option>
-            <option value="Renda Variável">Renda Variável</option>
-            <option value="Fundos">Fundos</option>
-            <option value="Cripto">Cripto</option>
+            <option value="Renda Fixa">Renda Fixa (CDB, LCI, Tesouro)</option>
+            <option value="Renda Variável">Renda Variável (Ações, FIIs)</option>
+            <option value="Reserva">Reserva de Emergência</option>
+            <option value="Cripto">Criptomoedas</option>
             <option value="Outros">Outros</option>
           </select>
         </div>
@@ -274,7 +285,8 @@
         </div>
         <button type="submit" class="btn-submit">Salvar Investimento</button>
       </form>
-      <h3>Carteira de Investimentos</h3>
+
+      <h3>Minha Carteira de Investimentos</h3>
       <ul id="list-investimentos"></ul>
     </div>
 
@@ -283,7 +295,6 @@
   <!-- NAVEGAÇÃO & EVENTOS DA INTERFACE -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      // Abas
       const buttons = document.querySelectorAll(".tab-button");
       const contents = document.querySelectorAll(".tab-content");
 
@@ -297,7 +308,6 @@
         });
       });
 
-      // Alternar campo de cartão personalizado
       const selectCard = document.getElementById("card-nome-select");
       const customCardGroup = document.getElementById("group-card-custom");
       selectCard.addEventListener("change", () => {
@@ -336,13 +346,11 @@
 
     let globalData = { receitas: {}, despesas: {}, cartoes: {}, investimentos: {} };
 
-    // Define mês atual por padrão para os filtros de início e fim
     const today = new Date();
     const currentMonthStr = today.toISOString().slice(0, 7);
     document.getElementById("filter-mes-inicio").value = currentMonthStr;
     document.getElementById("filter-mes-fim").value = currentMonthStr;
 
-    // Métodos Globais para os Botões
     window.togglePago = (categoria, id, statusAtual) => {
       const itemRef = ref(db, `financas/${categoria}/${id}`);
       update(itemRef, { pago: !statusAtual });
@@ -540,6 +548,11 @@
 
     onValue(investimentosRef, (snapshot) => {
       globalData.investimentos = snapshot.val() || {};
+      renderInvestimentos();
+      renderGeral();
+    });
+
+    function renderInvestimentos() {
       const list = document.getElementById("list-investimentos");
       list.innerHTML = "";
       Object.keys(globalData.investimentos).forEach(id => {
@@ -548,7 +561,7 @@
           <li>
             <div class="item-info">
               <span class="item-title">${item.descricao}</span>
-              <span class="item-sub">Tipo: ${item.tipo} | Data: ${item.data}</span>
+              <span class="item-sub">Tipo: ${item.tipo} | Aplicação: ${item.data}</span>
             </div>
             <div class="item-actions">
               <span class="item-val val-invest">R$ ${Number(item.valor).toFixed(2)}</span>
@@ -557,7 +570,7 @@
             </div>
           </li>`;
       });
-    });
+    }
 
     // 5. VISÃO GERAL, PERÍODO E CARDS DIVERSOS
     document.getElementById("filter-mes-inicio").addEventListener("change", renderGeral);
@@ -580,10 +593,12 @@
       const list = document.getElementById("list-geral");
       const cardsWrapper = document.getElementById("cards-wrapper");
       const catCardsWrapper = document.getElementById("category-cards-wrapper");
+      const investCardsWrapper = document.getElementById("invest-cards-wrapper");
 
       list.innerHTML = "";
       cardsWrapper.innerHTML = "";
       catCardsWrapper.innerHTML = "";
+      investCardsWrapper.innerHTML = "";
 
       const mesInicio = document.getElementById("filter-mes-inicio").value;
       const mesFim = document.getElementById("filter-mes-fim").value;
@@ -595,6 +610,24 @@
       let totalRefeicao = 0;
       let totalAlimentacao = 0;
       let totalContas = 0;
+
+      let totalInvestido = 0;
+      let investPorTipo = {
+        'Renda Fixa': 0,
+        'Renda Variável': 0,
+        'Reserva': 0,
+        'Cripto': 0
+      };
+
+      // Cálculo dos Investimentos (Patrimônio Total)
+      Object.keys(globalData.investimentos).forEach(id => {
+        const item = globalData.investimentos[id];
+        const val = Number(item.valor) || 0;
+        totalInvestido += val;
+        if (investPorTipo[item.tipo] !== undefined) {
+          investPorTipo[item.tipo] += val;
+        }
+      });
 
       let todos = [];
       let faturasPorCartao = {};
@@ -611,8 +644,6 @@
 
       todos.forEach(item => {
         const itemMes = item.data ? item.data.slice(0, 7) : '';
-        
-        // Validação do intervalo de meses
         const passaInicio = !mesInicio || itemMes >= mesInicio;
         const passaFim = !mesFim || itemMes <= mesFim;
         const passaMes = passaInicio && passaFim;
@@ -663,7 +694,39 @@
         }
       });
 
-      // Renderiza Cards das Categorias Solicitadas
+      // Renderiza Cards dos Investimentos
+      investCardsWrapper.innerHTML = `
+        <div class="dashboard-card bg-inv-total">
+          <div class="card-brand">Patrimônio Total</div>
+          <div>
+            <div class="card-label">Acumulado</div>
+            <div class="card-amount">R$ ${totalInvestido.toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="dashboard-card bg-renda-fixa">
+          <div class="card-brand">Renda Fixa</div>
+          <div>
+            <div class="card-label">Total Aplicado</div>
+            <div class="card-amount">R$ ${investPorTipo['Renda Fixa'].toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="dashboard-card bg-renda-variavel">
+          <div class="card-brand">Renda Variável</div>
+          <div>
+            <div class="card-label">Ações / FIIs</div>
+            <div class="card-amount">R$ ${investPorTipo['Renda Variável'].toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="dashboard-card bg-cripto">
+          <div class="card-brand">Cripto</div>
+          <div>
+            <div class="card-label">Total Cripto</div>
+            <div class="card-amount">R$ ${investPorTipo['Cripto'].toFixed(2)}</div>
+          </div>
+        </div>
+      `;
+
+      // Renderiza Cards das Categorias
       catCardsWrapper.innerHTML = `
         <div class="dashboard-card bg-refeicao">
           <div class="card-brand">Refeição (VR)</div>
@@ -688,7 +751,7 @@
         </div>
       `;
 
-      // Renderiza os Cards dos Cartões no Período
+      // Renderiza os Cards dos Cartões
       const cartoesNomes = Object.keys(faturasPorCartao);
       if (cartoesNomes.length === 0) {
         cardsWrapper.innerHTML = `<p style="color: #777; font-size: 14px;">Nenhuma fatura de cartão para este período.</p>`;
