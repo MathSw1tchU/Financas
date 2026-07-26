@@ -222,13 +222,13 @@
   <div class="container">
     <h1>Controle Financeiro Personalizado</h1>
 
-    <!-- Menu de Navegação -->
+    <!-- Menu de Navegação por Abas -->
     <div class="nav-tabs">
-      <button class="tab-button active" onclick="openTab(event, 'tab-geral')">Visão Geral / Filtros</button>
-      <button class="tab-button" onclick="openTab(event, 'tab-receitas')">Receitas</button>
-      <button class="tab-button" onclick="openTab(event, 'tab-despesas')">Despesas</button>
-      <button class="tab-button" onclick="openTab(event, 'tab-cartoes')">Cartões</button>
-      <button class="tab-button" onclick="openTab(event, 'tab-investimentos')">Investimentos</button>
+      <button class="tab-button active" data-tab="tab-geral">Visão Geral / Filtros</button>
+      <button class="tab-button" data-tab="tab-receitas">Receitas</button>
+      <button class="tab-button" data-tab="tab-despesas">Despesas</button>
+      <button class="tab-button" data-tab="tab-cartoes">Cartões</button>
+      <button class="tab-button" data-tab="tab-investimentos">Investimentos</button>
     </div>
 
     <!-- ABA VISÃO GERAL / FILTROS -->
@@ -371,26 +371,30 @@
 
   </div>
 
+  <!-- NAVEGAÇÃO DE ABAS SEM INLINE ONCLICK -->
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const buttons = document.querySelectorAll(".tab-button");
+      const contents = document.querySelectorAll(".tab-content");
+
+      buttons.forEach(btn => {
+        btn.addEventListener("click", () => {
+          const targetTab = btn.getAttribute("data-tab");
+
+          buttons.forEach(b => b.classList.remove("active"));
+          contents.forEach(c => c.classList.remove("active"));
+
+          btn.classList.add("active");
+          document.getElementById(targetTab).classList.add("active");
+        });
+      });
+    });
+  </script>
+
   <!-- FIREBASE & LÓGICA DO SISTEMA -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-    // Torna a função das abas global para ser acessada pelos botões
-    window.openTab = function(evt, tabName) {
-      const tabContents = document.getElementsByClassName("tab-content");
-      for (let i = 0; i < tabContents.length; i++) {
-        tabContents[i].classList.remove("active");
-      }
-
-      const tabButtons = document.getElementsByClassName("tab-button");
-      for (let i = 0; i < tabButtons.length; i++) {
-        tabButtons[i].classList.remove("active");
-      }
-
-      document.getElementById(tabName).classList.add("active");
-      evt.currentTarget.classList.add("active");
-    };
 
     const firebaseConfig = {
       apiKey: "AIzaSyChVe0qNeGCC4I0FIAmq2lEdbk61i5LJAA",
@@ -413,12 +417,12 @@
 
     let globalData = { receitas: {}, despesas: {}, cartoes: {} };
 
-    // Definir Mês Atual como Padrão no Filtro
+    // Definir Mês Atual no Filtro
     const today = new Date();
     const currentMonthStr = today.toISOString().slice(0, 7);
     document.getElementById("filter-mes").value = currentMonthStr;
 
-    // Função de Alterar Status de Pago
+    // Função para alterar Status de Pago
     window.togglePago = (categoria, id, statusAtual) => {
       const itemRef = ref(db, `financas/${categoria}/${id}`);
       update(itemRef, { pago: !statusAtual });
@@ -572,7 +576,7 @@
       }
     });
 
-    // 5. Renderização e Filtros da Visão Geral
+    // 5. Visão Geral
     document.getElementById("filter-mes").addEventListener("change", renderGeral);
     document.getElementById("filter-status").addEventListener("change", renderGeral);
 
@@ -626,4 +630,5 @@
                   ${item.cat === 'receitas' ? '+' : '-'} R$ ${item.valor.toFixed(2)}
                 </span>
                 <label class="pay-toggle">
-                  <input type="checkbox" ${item.pago ? 'checked' : ''} onchange="togglePago('
+                  <input type="checkbox" ${item.pago ? 'checked' : ''} onchange="togglePago('${item.cat}', '${item.id}', ${item.pago})"> 
+           
