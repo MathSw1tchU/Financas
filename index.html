@@ -376,6 +376,22 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, push, onValue, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
+    // Torna a função das abas global para ser acessada pelos botões
+    window.openTab = function(evt, tabName) {
+      const tabContents = document.getElementsByClassName("tab-content");
+      for (let i = 0; i < tabContents.length; i++) {
+        tabContents[i].classList.remove("active");
+      }
+
+      const tabButtons = document.getElementsByClassName("tab-button");
+      for (let i = 0; i < tabButtons.length; i++) {
+        tabButtons[i].classList.remove("active");
+      }
+
+      document.getElementById(tabName).classList.add("active");
+      evt.currentTarget.classList.add("active");
+    };
+
     const firebaseConfig = {
       apiKey: "AIzaSyChVe0qNeGCC4I0FIAmq2lEdbk61i5LJAA",
       authDomain: "app-financas-2027.firebaseapp.com",
@@ -570,7 +586,6 @@
       let totalRec = 0;
       let totalDesp = 0;
 
-      // Junta e formata todos os lançamentos
       let todos = [];
 
       Object.keys(globalData.receitas).forEach(id => {
@@ -611,18 +626,4 @@
                   ${item.cat === 'receitas' ? '+' : '-'} R$ ${item.valor.toFixed(2)}
                 </span>
                 <label class="pay-toggle">
-                  <input type="checkbox" ${item.pago ? 'checked' : ''} onchange="togglePago('${item.cat}', '${item.id}', ${item.pago})"> 
-                  ${item.pago ? 'Pago/Recebido' : 'Pendente'}
-                </label>
-              </div>
-            </li>`;
-        }
-      });
-
-      document.getElementById("total-receitas").innerText = `R$ ${totalRec.toFixed(2)}`;
-      document.getElementById("total-despesas").innerText = `R$ ${totalDesp.toFixed(2)}`;
-      
-      const saldo = totalRec - totalDesp;
-      const saldoElem = document.getElementById("saldo-mes");
-      saldoElem.innerText = `R$ ${saldo.toFixed(2)}`;
-      saldoElem.classN
+                  <input type="checkbox" ${item.pago ? 'checked' : ''} onchange="togglePago('
