@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controle Financeiro - Realtime</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 500px; margin: 40px auto; padding: 20px; }
+    form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 30px; }
+    input, button { padding: 10px; font-size: 16px; border-radius: 5px; border: 1px solid #ccc; }
+    button { background-color: #28a745; color: white; border: none; cursor: pointer; }
+    ul { list-style: none; padding: 0; }
+    li { background: #f4f4f4; margin-bottom: 8px; padding: 10px; border-radius: 5px; display: flex; justify-content: space-between; }
+  </style>
+</head>
+<body>
+
+  <h2>Cadastrar Receita</h2>
+  <form id="form-receita">
+    <input type="text" id="descricao" placeholder="Descrição (ex: Salário)" required>
+    <input type="number" id="valor" step="0.01" placeholder="Valor (R$)" required>
+    <input type="date" id="data" required>
+    <button type="submit">Adicionar Receita</button>
+  </form>
+
+  <h2>Receitas Registradas</h2>
+  <ul id="lista-receitas"></ul>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyChVe0qNeGCC4I0FIAmq2lEdbk61i5LJAA",
+      authDomain: "app-financas-2027.firebaseapp.com",
+      projectId: "app-financas-2027",
+      storageBucket: "app-financas-2027.firebasestorage.app",
+      messagingSenderId: "543373877170",
+      appId: "1:543373877170:web:dbcc711460dbd113eb8eab",
+      measurementId: "G-GSDZ44MD2Q",
+      // Cole aqui o URL gerado no Realtime Database:
+      databaseURL: "https://app-financas-2027-default-rtdb.firebaseio.com/" 
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const receitasRef = ref(db, 'receitas');
+
+    // 1. Enviar dados ao salvar o formulário
+    const form = document.getElementById("form-receita");
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      push(receitasRef, {
+        descricao: document.getElementById("descricao").value,
+        valor: parseFloat(document.getElementById("valor").value),
+        data: document.getElementById("data").value,
+        criadoEm: Date.now()
+      });
+
+      form.reset();
+    });
+
+    // 2. Escutar atualizações EM TEMPO REAL e atualizar a lista
+    const lista = document.getElementById("lista-receitas");
+    onValue(receitasRef, (snapshot) => {
+      lista.innerHTML = ""; // Limpa a lista antes de renderizar
+      const data = snapshot.val();
+
+      if (data) {
+        Object.keys(data).forEach(key => {
+          const item = data[key];
+          const li = document.createElement("li");
+          li.innerHTML = `<span><b>${item.descricao}</b> (${item.data})</span> <span>R$ ${item.valor.toFixed(2)}</span>`;
+          lista.appendChild(li);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
