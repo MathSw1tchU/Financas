@@ -463,4 +463,449 @@
       push(receitasRef, {
         descricao: `Resgate: ${item.descricao}`,
         valor: valResgate,
-        categoria: 'Investimen
+        categoria: 'Investimento',
+        data: dataResgate,
+        pago: true
+      });
+
+      alert(`Sucesso!\nR$ ${valResgate.toFixed(2)} resgatados de "${item.descricao}" e adicionados às suas RECEITAS.`);
+    };
+
+    // 1. RECEITAS
+    document.getElementById("form-receita").addEventListener("submit", (e) => {
+      e.preventDefault();
+      push(receitasRef, {
+        descricao: document.getElementById("rec-desc").value,
+        valor: parseFloat(document.getElementById("rec-valor").value),
+        categoria: document.getElementById("rec-categoria").value,
+        data: document.getElementById("rec-data").value,
+        pago: true
+      });
+      e.target.reset();
+    });
+
+    onValue(receitasRef, (snapshot) => {
+      globalData.receitas = snapshot.val() || {};
+      renderReceitas();
+      renderGeral();
+    });
+
+    function renderReceitas() {
+      const list = document.getElementById("list-receitas");
+      list.innerHTML = "";
+      Object.keys(globalData.receitas).forEach(id => {
+        const item = globalData.receitas[id];
+        const catText = item.categoria ? ` (${item.categoria})` : '';
+        list.innerHTML += `
+          <li>
+            <div class="item-info">
+              <span class="item-title">${item.descricao}${catText}</span>
+              <span class="item-sub">Data: ${item.data}</span>
+            </div>
+            <div class="item-actions">
+              <span class="item-val val-receita">+ R$ ${Number(item.valor).toFixed(2)}</span>
+              <button class="btn-action btn-edit" onclick="editarItem('receitas', '${id}')">Editar</button>
+              <button class="btn-action btn-delete" onclick="excluirItem('receitas', '${id}')">Excluir</button>
+            </div>
+          </li>`;
+      });
+    }
+
+    // 2. DESPESAS
+    document.getElementById("form-despesa").addEventListener("submit", (e) => {
+      e.preventDefault();
+      push(despesasRef, {
+        descricao: document.getElementById("desp-desc").value,
+        valor: parseFloat(document.getElementById("desp-valor").value),
+        fonte: document.getElementById("desp-fonte").value,
+        data: document.getElementById("desp-data").value,
+        pago: false
+      });
+      e.target.reset();
+    });
+
+    onValue(despesasRef, (snapshot) => {
+      globalData.despesas = snapshot.val() || {};
+      renderDespesas();
+      renderGeral();
+    });
+
+    function renderDespesas() {
+      const list = document.getElementById("list-despesas");
+      list.innerHTML = "";
+      Object.keys(globalData.despesas).forEach(id => {
+        const item = globalData.despesas[id];
+        const fonteText = item.fonte && item.fonte !== 'Geral' ? ` [${item.fonte}]` : '';
+        list.innerHTML += `
+          <li class="${item.pago ? 'pago-status' : 'pendente-status'}">
+            <div class="item-info">
+              <span class="item-title">${item.descricao}${fonteText}</span>
+              <span class="item-sub">Vencimento: ${item.data}</span>
+            </div>
+            <div class="item-actions">
+              <span class="item-val val-despesa">- R$ ${Number(item.valor).toFixed(2)}</span>
+              <label class="pay-toggle">
+                <input type="checkbox" ${item.pago ? 'checked' : ''} onchange="togglePago('despesas', '${id}', ${item.pago})"> Pago
+              </label>
+              <button class="btn-action btn-edit" onclick="editarItem('despesas', '${id}')">Editar</button>
+              <button class="btn-action btn-delete" onclick="excluirItem('despesas', '${id}')">Excluir</button>
+            </div>
+          </li>`;
+      });
+    }
+
+    // 3. CARTÕES
+    document.getElementById("form-cartao").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const desc = document.getElementById("card-desc").value;
+      const valorTotal = parseFloat(document.getElementById("card-valor").value);
+      
+      const selectCard = document.getElementById("card-nome-select").value;
+      const cartaoNome = selectCard === "outro" 
+        ? document.getElementById("card-nome-custom").value 
+        : selectCard;
+
+      const totalParcelas = parseInt(document.getElementById("card-parcelas").value);
+      const dataInicialStr = document.getElementById("card-data").value;
+
+      const valorPorParcela = valorTotal / totalParcelas;
+
+      for (let i = 0; i < totalParcelas; i++) {
+        const [ano, mes, dia] = dataInicialStr.split('-').map(Number);
+        const dataParcela = new Date(ano, (mes - 1) + i, dia);
+        const dataFormatted = dataParcela.toISOString().slice(0, 10);
+
+        push(cartoesRef, {
+          descricao: `${desc} (${i + 1}/${totalParcelas})`,
+          valor: valorPorParcela,
+          cartao: cartaoNome,
+          parcelaAtual: i + 1,
+          totalParcelas: totalParcelas,
+          data: dataFormatted,
+          pago: false
+        });
+      }
+      e.target.reset();
+      document.getElementById("group-card-custom").style.display = "none";
+    });
+
+    onValue(cartoesRef, (snapshot) => {
+      globalData.cartoes = snapshot.val() || {};
+      renderCartoes();
+      renderGeral();
+    });
+
+    function renderCartoes() {
+      const list = document.getElementById("list-cartoes");
+      list.innerHTML = "";
+      Object.keys(globalData.cartoes).forEach(id => {
+        const item = globalData.cartoes[id];
+        list.innerHTML += `
+          <li class="${item.pago ? 'pago-status' : 'pendente-status'}">
+            <div class="item-info">
+              <span class="item-title">${item.descricao} - ${item.cartao}</span>
+              <span class="item-sub">Vencimento: ${item.data}</span>
+            </div>
+            <div class="item-actions">
+              <span class="item-val val-cartao">R$ ${Number(item.valor).toFixed(2)}</span>
+              <label class="pay-toggle">
+                <input type="checkbox" ${item.pago ? 'checked' : ''} onchange="togglePago('cartoes', '${id}', ${item.pago})"> Parcela Paga
+              </label>
+              <button class="btn-action btn-edit" onclick="editarItem('cartoes', '${id}')">Editar</button>
+              <button class="btn-action btn-delete" onclick="excluirItem('cartoes', '${id}')">Excluir</button>
+            </div>
+          </li>`;
+      });
+    }
+
+    // 4. INVESTIMENTOS
+    document.getElementById("form-investimento").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const valAplicado = parseFloat(document.getElementById("inv-valor").value);
+      push(investimentosRef, {
+        descricao: document.getElementById("inv-desc").value,
+        valor: valAplicado,
+        valorAtual: valAplicado,
+        tipo: document.getElementById("inv-tipo").value,
+        data: document.getElementById("inv-data").value
+      });
+      e.target.reset();
+    });
+
+    onValue(investimentosRef, (snapshot) => {
+      globalData.investimentos = snapshot.val() || {};
+      renderInvestimentos();
+      renderGeral();
+    });
+
+    function renderInvestimentos() {
+      const list = document.getElementById("list-investimentos");
+      list.innerHTML = "";
+      Object.keys(globalData.investimentos).forEach(id => {
+        const item = globalData.investimentos[id];
+        const valAplicado = Number(item.valor) || 0;
+        const valAtual = item.valorAtual !== undefined ? Number(item.valorAtual) : valAplicado;
+        
+        const rendimento = valAtual - valAplicado;
+        const percRendimento = valAplicado > 0 ? (rendimento / valAplicado) * 100 : 0;
+
+        let rendimentoHTML = "";
+        if (rendimento > 0) {
+          rendimentoHTML = `<span class="lucro-positivo">▲ +R$ ${rendimento.toFixed(2)} (+${percRendimento.toFixed(2)}%)</span>`;
+        } else if (rendimento < 0) {
+          rendimentoHTML = `<span class="lucro-negativo">▼ -R$ ${Math.abs(rendimento).toFixed(2)} (${percRendimento.toFixed(2)}%)</span>`;
+        } else {
+          rendimentoHTML = `<span class="lucro-neutro">0,00% (Sem alteração)</span>`;
+        }
+
+        list.innerHTML += `
+          <li>
+            <div class="item-info">
+              <span class="item-title">${item.descricao}</span>
+              <span class="item-sub">Tipo: ${item.tipo} | Aplicado Inicial: R$ ${valAplicado.toFixed(2)} em ${item.data}</span>
+              ${rendimentoHTML}
+            </div>
+            <div class="item-actions">
+              <span class="item-val val-invest">Atual: R$ ${valAtual.toFixed(2)}</span>
+              <button class="btn-action btn-redeem" onclick="resgatarInvestimento('${id}')">Resgatar</button>
+              <button class="btn-action btn-update-val" onclick="atualizarValorInvestimento('${id}')">Valuation</button>
+              <button class="btn-action btn-edit" onclick="editarItem('investimentos', '${id}')">Editar</button>
+              <button class="btn-action btn-delete" onclick="excluirItem('investimentos', '${id}')">Excluir</button>
+            </div>
+          </li>`;
+      });
+    }
+
+    // 5. VISÃO GERAL
+    document.getElementById("filter-mes-inicio").addEventListener("change", renderGeral);
+    document.getElementById("filter-mes-fim").addEventListener("change", renderGeral);
+    document.getElementById("filter-status").addEventListener("change", renderGeral);
+
+    function getCardClass(nomeCartao) {
+      const nome = (nomeCartao || '').toLowerCase();
+      if (nome.includes('nubank')) return 'bg-nubank';
+      if (nome.includes('itaú') || nome.includes('itau')) return 'bg-itau';
+      if (nome.includes('inter')) return 'bg-inter';
+      if (nome.includes('bradesco')) return 'bg-bradesco';
+      if (nome.includes('santander')) return 'bg-santander';
+      if (nome.includes('c6')) return 'bg-c6';
+      if (nome.includes('xp')) return 'bg-xp';
+      return 'bg-default';
+    }
+
+    function renderGeral() {
+      const list = document.getElementById("list-geral");
+      const cardsWrapper = document.getElementById("cards-wrapper");
+      const catCardsWrapper = document.getElementById("category-cards-wrapper");
+      const investCardsWrapper = document.getElementById("invest-cards-wrapper");
+
+      list.innerHTML = "";
+      cardsWrapper.innerHTML = "";
+      catCardsWrapper.innerHTML = "";
+      investCardsWrapper.innerHTML = "";
+
+      const mesInicio = document.getElementById("filter-mes-inicio").value;
+      const mesFim = document.getElementById("filter-mes-fim").value;
+      const statusFiltro = document.getElementById("filter-status").value;
+
+      let totalRec = 0;
+      let totalDesp = 0;
+
+      let totalVRRec = 0;
+      let totalVRDesp = 0;
+
+      let totalVARec = 0;
+      let totalVADesp = 0;
+
+      let totalContasGeral = 0;
+
+      let totalPatrimonioAtual = 0;
+      let totalAplicadoGeral = 0;
+      let investPorTipo = { 'Renda Fixa': 0, 'Renda Variável': 0, 'Reserva': 0, 'Cripto': 0, 'Outros': 0 };
+
+      // CÁLCULO INVESTIMENTOS
+      Object.keys(globalData.investimentos).forEach(id => {
+        const item = globalData.investimentos[id];
+        const valAplicado = Number(item.valor) || 0;
+        const valAtual = item.valorAtual !== undefined ? Number(item.valorAtual) : valAplicado;
+        totalPatrimonioAtual += valAtual;
+        totalAplicadoGeral += valAplicado;
+        if (investPorTipo[item.tipo] !== undefined) {
+          investPorTipo[item.tipo] += valAtual;
+        } else {
+          investPorTipo['Outros'] += valAtual;
+        }
+      });
+
+      let todos = [];
+      let faturasPorCartao = {};
+
+      Object.keys(globalData.receitas).forEach(id => {
+        todos.push({ ...globalData.receitas[id], id, cat: 'receitas', badge: 'badge-receita', tipoNome: 'Receita' });
+      });
+      Object.keys(globalData.despesas).forEach(id => {
+        todos.push({ ...globalData.despesas[id], id, cat: 'despesas', badge: 'badge-despesa', tipoNome: 'Despesa' });
+      });
+      Object.keys(globalData.cartoes).forEach(id => {
+        todos.push({ ...globalData.cartoes[id], id, cat: 'cartoes', badge: 'badge-cartao', tipoNome: 'Cartão' });
+      });
+
+      todos.forEach(item => {
+        const itemMes = item.data ? item.data.slice(0, 7) : '';
+        const passaInicio = !mesInicio || itemMes >= mesInicio;
+        const passaFim = !mesFim || itemMes <= mesFim;
+        const passaMes = passaInicio && passaFim;
+
+        const passaStatus = statusFiltro === 'todos' || 
+                            (statusFiltro === 'pago' && item.pago) || 
+                            (statusFiltro === 'pendente' && !item.pago);
+
+        if (passaMes && passaStatus) {
+          const valNum = Number(item.valor) || 0;
+          
+          if (item.cat === 'receitas') {
+            totalRec += valNum;
+            if (item.categoria === 'Refeição') totalVRRec += valNum;
+            if (item.categoria === 'Alimentação') totalVARec += valNum;
+          } else if (item.cat === 'despesas') {
+            totalDesp += valNum;
+            if (item.fonte === 'VR') {
+              totalVRDesp += valNum;
+            } else if (item.fonte === 'VA') {
+              totalVADesp += valNum;
+            } else {
+              totalContasGeral += valNum;
+            }
+          } else if (item.cat === 'cartoes') {
+            totalDesp += valNum;
+            if (item.cartao) {
+              const nomeCard = item.cartao.trim();
+              faturasPorCartao[nomeCard] = (faturasPorCartao[nomeCard] || 0) + valNum;
+            }
+          }
+
+          const badgeFonteHtml = item.fonte && item.fonte !== 'Geral' 
+            ? `<span class="badge-fonte">${item.fonte}</span>` 
+            : '';
+
+          list.innerHTML += `
+            <li class="${item.pago ? 'pago-status' : 'pendente-status'}">
+              <div class="item-info">
+                <span class="item-title">
+                  ${item.descricao} 
+                  <span class="badge-tipo ${item.badge}">${item.tipoNome}</span>
+                  ${badgeFonteHtml}
+                </span>
+                <span class="item-sub">Data: ${item.data}</span>
+              </div>
+              <div class="item-actions">
+                <span class="item-val ${item.cat === 'receitas' ? 'val-receita' : 'val-despesa'}">
+                  ${item.cat === 'receitas' ? '+' : '-'} R$ ${valNum.toFixed(2)}
+                </span>
+                <label class="pay-toggle">
+                  <input type="checkbox" ${item.pago ? 'checked' : ''} onchange="togglePago('${item.cat}', '${item.id}', ${item.pago})"> 
+                  ${item.pago ? 'Pago/Recebido' : 'Pendente'}
+                </label>
+                <button class="btn-action btn-edit" onclick="editarItem('${item.cat}', '${item.id}')">Editar</button>
+                <button class="btn-action btn-delete" onclick="excluirItem('${item.cat}', '${item.id}')">Excluir</button>
+              </div>
+            </li>`;
+        }
+      });
+
+      // Saldos de VR e VA
+      const saldoVR = totalVRRec - totalVRDesp;
+      const saldoVA = totalVARec - totalVADesp;
+
+      // Rendimento total da carteira
+      const lucroglobal = totalPatrimonioAtual - totalAplicadoGeral;
+      const percGlobal = totalAplicadoGeral > 0 ? (lucroglobal / totalAplicadoGeral) * 100 : 0;
+      const txtLucro = lucroglobal >= 0 ? `+${percGlobal.toFixed(1)}%` : `${percGlobal.toFixed(1)}%`;
+
+      // Renderiza Cards VR, VA e Contas Gerais
+      catCardsWrapper.innerHTML = `
+        <div class="dashboard-card bg-refeicao">
+          <div class="card-brand">Vale Refeição (VR)</div>
+          <div>
+            <div class="card-label">Entrou: R$ ${totalVRRec.toFixed(2)} | Gastos: R$ ${totalVRDesp.toFixed(2)}</div>
+            <div class="card-amount">Saldo: R$ ${saldoVR.toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="dashboard-card bg-alimentacao">
+          <div class="card-brand">Vale Alimentação (VA)</div>
+          <div>
+            <div class="card-label">Entrou: R$ ${totalVARec.toFixed(2)} | Gastos: R$ ${totalVADesp.toFixed(2)}</div>
+            <div class="card-amount">Saldo: R$ ${saldoVA.toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="dashboard-card bg-contas">
+          <div class="card-brand">Contas / Outras Despesas</div>
+          <div>
+            <div class="card-label">Total Conta Corrente/Dinheiro</div>
+            <div class="card-amount">R$ ${totalContasGeral.toFixed(2)}</div>
+          </div>
+        </div>
+      `;
+
+      // Renderiza Cards dos Investimentos
+      investCardsWrapper.innerHTML = `
+        <div class="dashboard-card bg-inv-total">
+          <div class="card-brand">Patrimônio Atual</div>
+          <div>
+            <div class="card-label">Rendimento: ${txtLucro}</div>
+            <div class="card-amount">R$ ${totalPatrimonioAtual.toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="dashboard-card bg-renda-fixa">
+          <div class="card-brand">Renda Fixa</div>
+          <div>
+            <div class="card-label">Valor Atual</div>
+            <div class="card-amount">R$ ${investPorTipo['Renda Fixa'].toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="dashboard-card bg-renda-variavel">
+          <div class="card-brand">Renda Variável</div>
+          <div>
+            <div class="card-label">Ações / FIIs</div>
+            <div class="card-amount">R$ ${investPorTipo['Renda Variável'].toFixed(2)}</div>
+          </div>
+        </div>
+        <div class="dashboard-card bg-cripto">
+          <div class="card-brand">Cripto</div>
+          <div>
+            <div class="card-label">Valor Atual</div>
+            <div class="card-amount">R$ ${investPorTipo['Cripto'].toFixed(2)}</div>
+          </div>
+        </div>
+      `;
+
+      // Renderiza Cards dos Cartões
+      const cartoesNomes = Object.keys(faturasPorCartao);
+      if (cartoesNomes.length === 0) {
+        cardsWrapper.innerHTML = `<p style="color: #777; font-size: 14px;">Nenhuma fatura de cartão para este período.</p>`;
+      } else {
+        cartoesNomes.forEach(nomeCard => {
+          const totalFatura = faturasPorCartao[nomeCard];
+          const bgClass = getCardClass(nomeCard);
+          cardsWrapper.innerHTML += `
+            <div class="dashboard-card ${bgClass}">
+              <div class="card-brand">${nomeCard}</div>
+              <div>
+                <div class="card-label">Total no Período</div>
+                <div class="card-amount">R$ ${totalFatura.toFixed(2)}</div>
+              </div>
+            </div>`;
+        });
+      }
+
+      document.getElementById("total-receitas").innerText = `R$ ${totalRec.toFixed(2)}`;
+      document.getElementById("total-despesas").innerText = `R$ ${totalDesp.toFixed(2)}`;
+      
+      const saldo = totalRec - totalDesp;
+      const saldoElem = document.getElementById("saldo-mes");
+      saldoElem.innerText = `R$ ${saldo.toFixed(2)}`;
+      saldoElem.className = saldo >= 0 ? "val-receita" : "val-despesa";
+    }
+  </script>
+</body>
+</html>
