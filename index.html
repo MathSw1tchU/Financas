@@ -36,31 +36,39 @@
     .item-info { display: flex; flex-direction: column; }
     .item-title { font-weight: bold; color: #333; }
     .item-sub { font-size: 12px; color: #777; }
-    .item-actions { display: flex; align-items: center; gap: 10px; }
+    .item-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
     .item-val { font-weight: bold; font-size: 16px; }
     .val-receita { color: #27ae60; }
     .val-despesa { color: #e74c3c; }
     .val-cartao { color: #e67e22; }
     .val-invest { color: #2980b9; }
 
+    /* Rendimentos e Oscilação */
+    .lucro-positivo { color: #27ae60; font-weight: bold; font-size: 13px; }
+    .lucro-negativo { color: #e74c3c; font-weight: bold; font-size: 13px; }
+    .lucro-neutro { color: #7f8c8d; font-weight: bold; font-size: 13px; }
+
     /* Botões de Ação */
     .btn-action { padding: 5px 8px; font-size: 12px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
     .btn-edit { background-color: #3498db; color: white; }
+    .btn-update-val { background-color: #f39c12; color: white; }
+    .btn-redeem { background-color: #27ae60; color: white; }
     .btn-delete { background-color: #e74c3c; color: white; }
 
     .badge-tipo { font-size: 10px; padding: 2px 6px; border-radius: 4px; color: white; text-transform: uppercase; font-weight: bold; margin-left: 5px; }
     .badge-receita { background-color: #27ae60; }
     .badge-despesa { background-color: #e74c3c; }
     .badge-cartao { background-color: #e67e22; }
+    .badge-fonte { background-color: #7f8c8d; font-size: 10px; padding: 2px 6px; border-radius: 4px; color: white; margin-left: 5px; }
 
     .pay-toggle { cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 13px; font-weight: bold; }
     .resumo-card { background: #eef2f5; padding: 15px; border-radius: 6px; margin-bottom: 20px; display: flex; justify-content: space-around; font-weight: bold; }
 
-    /* Visualização Visual dos Cartões / Categorias */
+    /* Cards Visualização */
     .cards-container { display: flex; gap: 15px; flex-wrap: wrap; margin-bottom: 20px; }
     .dashboard-card {
       width: 220px;
-      height: 120px;
+      min-height: 120px;
       border-radius: 12px;
       padding: 15px;
       color: white;
@@ -72,8 +80,8 @@
     }
     .dashboard-card:hover { transform: translateY(-3px); }
     .card-brand { font-size: 16px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
-    .card-label { font-size: 11px; opacity: 0.85; text-transform: uppercase; }
-    .card-amount { font-size: 20px; font-weight: bold; }
+    .card-label { font-size: 11px; opacity: 0.9; text-transform: uppercase; }
+    .card-amount { font-size: 18px; font-weight: bold; }
 
     /* Cores das Categorias */
     .bg-refeicao { background: linear-gradient(135deg, #2ecc71, #27ae60); }
@@ -85,7 +93,6 @@
     .bg-renda-fixa { background: linear-gradient(135deg, #2980b9, #1f618d); }
     .bg-renda-variavel { background: linear-gradient(135deg, #8e44ad, #6c3483); }
     .bg-cripto { background: linear-gradient(135deg, #f39c12, #d68910); }
-    .bg-reserva { background: linear-gradient(135deg, #16a085, #117864); }
 
     /* Bancos */
     .bg-nubank { background: linear-gradient(135deg, #8a05be, #530082); }
@@ -147,13 +154,13 @@
         <div>Saldo Período: <span id="saldo-mes">R$ 0,00</span></div>
       </div>
 
+      <!-- CARDS DE BENEFÍCIOS E CATEGORIAS -->
+      <h3>Saldos de Benefícios & Categorias</h3>
+      <div id="category-cards-wrapper" class="cards-container"></div>
+
       <!-- CARDS DE INVESTIMENTOS -->
       <h3>Patrimônio Investido</h3>
       <div id="invest-cards-wrapper" class="cards-container"></div>
-
-      <!-- CARDS DE CATEGORIAS E CARTÕES -->
-      <h3>Resumo Visual de Categorias</h3>
-      <div id="category-cards-wrapper" class="cards-container"></div>
 
       <h3>Faturas dos Cartões no Período</h3>
       <div id="cards-wrapper" class="cards-container"></div>
@@ -168,7 +175,7 @@
       <form id="form-receita">
         <div class="input-group">
           <label>Descrição</label>
-          <input type="text" id="rec-desc" placeholder="Ex: Salário, VR, VA" required>
+          <input type="text" id="rec-desc" placeholder="Ex: Salário, VR, VA, Resgate" required>
         </div>
         <div class="input-group">
           <label>Valor (R$)</label>
@@ -180,6 +187,7 @@
             <option value="Geral">Receita Geral / Salário</option>
             <option value="Refeição">Refeição (VR)</option>
             <option value="Alimentação">Alimentação (VA)</option>
+            <option value="Investimento">Resgate de Investimento</option>
           </select>
         </div>
         <div class="input-group">
@@ -198,14 +206,22 @@
       <form id="form-despesa">
         <div class="input-group">
           <label>Descrição</label>
-          <input type="text" id="desp-desc" placeholder="Ex: Conta de Luz, Aluguel" required>
+          <input type="text" id="desp-desc" placeholder="Ex: Almoço, Mercado, Luz" required>
         </div>
         <div class="input-group">
           <label>Valor (R$)</label>
           <input type="number" id="desp-valor" step="0.01" placeholder="0.00" required>
         </div>
-        <div class="input-group full">
-          <label>Data de Vencimento</label>
+        <div class="input-group">
+          <label>Forma de Pagamento / Fonte</label>
+          <select id="desp-fonte">
+            <option value="Geral">Conta Corrente / Dinheiro</option>
+            <option value="VR">Vale Refeição (VR)</option>
+            <option value="VA">Vale Alimentação (VA)</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Data de Vencimento / Compra</label>
           <input type="date" id="desp-data" required>
         </div>
         <button type="submit" class="btn-submit">Salvar Despesa</button>
@@ -263,10 +279,10 @@
       <form id="form-investimento">
         <div class="input-group">
           <label>Ativo / Aplicação</label>
-          <input type="text" id="inv-desc" placeholder="Ex: Tesouro Selic, PETR4, Bitcoin" required>
+          <input type="text" id="inv-desc" placeholder="Ex: Tesouro Selic, IPCA+ 2026, PETR4" required>
         </div>
         <div class="input-group">
-          <label>Valor Aplicado (R$)</label>
+          <label>Valor Inicial Aplicado (R$)</label>
           <input type="number" id="inv-valor" step="0.01" placeholder="0.00" required>
         </div>
         <div class="input-group">
@@ -292,7 +308,7 @@
 
   </div>
 
-  <!-- NAVEGAÇÃO & EVENTOS DA INTERFACE -->
+  <!-- NAVEGAÇÃO DA INTERFACE -->
   <script>
     document.addEventListener("DOMContentLoaded", () => {
       const buttons = document.querySelectorAll(".tab-button");
@@ -320,7 +336,7 @@
     });
   </script>
 
-  <!-- FIREBASE & LÓGICA DO APP -->
+  <!-- FIREBASE & LÓGICA -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -348,6 +364,8 @@
 
     const today = new Date();
     const currentMonthStr = today.toISOString().slice(0, 7);
+    const todayFormatted = today.toISOString().slice(0, 10);
+
     document.getElementById("filter-mes-inicio").value = currentMonthStr;
     document.getElementById("filter-mes-fim").value = currentMonthStr;
 
@@ -389,395 +407,60 @@
       }
     };
 
-    // 1. RECEITAS
-    document.getElementById("form-receita").addEventListener("submit", (e) => {
-      e.preventDefault();
-      push(receitasRef, {
-        descricao: document.getElementById("rec-desc").value,
-        valor: parseFloat(document.getElementById("rec-valor").value),
-        categoria: document.getElementById("rec-categoria").value,
-        data: document.getElementById("rec-data").value,
-        pago: true
-      });
-      e.target.reset();
-    });
+    window.atualizarValorInvestimento = (id) => {
+      const item = globalData.investimentos[id];
+      if (!item) return;
 
-    onValue(receitasRef, (snapshot) => {
-      globalData.receitas = snapshot.val() || {};
-      renderReceitas();
-      renderGeral();
-    });
+      const valorAtualAntigo = item.valorAtual !== undefined ? item.valorAtual : item.valor;
+      const novoValorStr = prompt(`Atualizar valor atual de "${item.descricao}":\n(Valor aplicado originalmente: R$ ${Number(item.valor).toFixed(2)})`, valorAtualAntigo);
 
-    function renderReceitas() {
-      const list = document.getElementById("list-receitas");
-      list.innerHTML = "";
-      Object.keys(globalData.receitas).forEach(id => {
-        const item = globalData.receitas[id];
-        const catText = item.categoria ? ` (${item.categoria})` : '';
-        list.innerHTML += `
-          <li>
-            <div class="item-info">
-              <span class="item-title">${item.descricao}${catText}</span>
-              <span class="item-sub">Data: ${item.data}</span>
-            </div>
-            <div class="item-actions">
-              <span class="item-val val-receita">+ R$ ${Number(item.valor).toFixed(2)}</span>
-              <button class="btn-action btn-edit" onclick="editarItem('receitas', '${id}')">Editar</button>
-              <button class="btn-action btn-delete" onclick="excluirItem('receitas', '${id}')">Excluir</button>
-            </div>
-          </li>`;
-      });
-    }
+      if (novoValorStr === null) return;
+      const novoValor = parseFloat(novoValorStr);
 
-    // 2. DESPESAS
-    document.getElementById("form-despesa").addEventListener("submit", (e) => {
-      e.preventDefault();
-      push(despesasRef, {
-        descricao: document.getElementById("desp-desc").value,
-        valor: parseFloat(document.getElementById("desp-valor").value),
-        data: document.getElementById("desp-data").value,
-        pago: false
-      });
-      e.target.reset();
-    });
-
-    onValue(despesasRef, (snapshot) => {
-      globalData.despesas = snapshot.val() || {};
-      renderDespesas();
-      renderGeral();
-    });
-
-    function renderDespesas() {
-      const list = document.getElementById("list-despesas");
-      list.innerHTML = "";
-      Object.keys(globalData.despesas).forEach(id => {
-        const item = globalData.despesas[id];
-        list.innerHTML += `
-          <li class="${item.pago ? 'pago-status' : 'pendente-status'}">
-            <div class="item-info">
-              <span class="item-title">${item.descricao}</span>
-              <span class="item-sub">Vencimento: ${item.data}</span>
-            </div>
-            <div class="item-actions">
-              <span class="item-val val-despesa">- R$ ${Number(item.valor).toFixed(2)}</span>
-              <label class="pay-toggle">
-                <input type="checkbox" ${item.pago ? 'checked' : ''} onchange="togglePago('despesas', '${id}', ${item.pago})"> Pago
-              </label>
-              <button class="btn-action btn-edit" onclick="editarItem('despesas', '${id}')">Editar</button>
-              <button class="btn-action btn-delete" onclick="excluirItem('despesas', '${id}')">Excluir</button>
-            </div>
-          </li>`;
-      });
-    }
-
-    // 3. CARTÕES
-    document.getElementById("form-cartao").addEventListener("submit", (e) => {
-      e.preventDefault();
-      const desc = document.getElementById("card-desc").value;
-      const valorTotal = parseFloat(document.getElementById("card-valor").value);
-      
-      const selectCard = document.getElementById("card-nome-select").value;
-      const cartaoNome = selectCard === "outro" 
-        ? document.getElementById("card-nome-custom").value 
-        : selectCard;
-
-      const totalParcelas = parseInt(document.getElementById("card-parcelas").value);
-      const dataInicialStr = document.getElementById("card-data").value;
-
-      const valorPorParcela = valorTotal / totalParcelas;
-
-      for (let i = 0; i < totalParcelas; i++) {
-        const [ano, mes, dia] = dataInicialStr.split('-').map(Number);
-        const dataParcela = new Date(ano, (mes - 1) + i, dia);
-        const dataFormatted = dataParcela.toISOString().slice(0, 10);
-
-        push(cartoesRef, {
-          descricao: `${desc} (${i + 1}/${totalParcelas})`,
-          valor: valorPorParcela,
-          cartao: cartaoNome,
-          parcelaAtual: i + 1,
-          totalParcelas: totalParcelas,
-          data: dataFormatted,
-          pago: false
-        });
-      }
-      e.target.reset();
-      document.getElementById("group-card-custom").style.display = "none";
-    });
-
-    onValue(cartoesRef, (snapshot) => {
-      globalData.cartoes = snapshot.val() || {};
-      renderCartoes();
-      renderGeral();
-    });
-
-    function renderCartoes() {
-      const list = document.getElementById("list-cartoes");
-      list.innerHTML = "";
-      Object.keys(globalData.cartoes).forEach(id => {
-        const item = globalData.cartoes[id];
-        list.innerHTML += `
-          <li class="${item.pago ? 'pago-status' : 'pendente-status'}">
-            <div class="item-info">
-              <span class="item-title">${item.descricao} - ${item.cartao}</span>
-              <span class="item-sub">Vencimento: ${item.data}</span>
-            </div>
-            <div class="item-actions">
-              <span class="item-val val-cartao">R$ ${Number(item.valor).toFixed(2)}</span>
-              <label class="pay-toggle">
-                <input type="checkbox" ${item.pago ? 'checked' : ''} onchange="togglePago('cartoes', '${id}', ${item.pago})"> Parcela Paga
-              </label>
-              <button class="btn-action btn-edit" onclick="editarItem('cartoes', '${id}')">Editar</button>
-              <button class="btn-action btn-delete" onclick="excluirItem('cartoes', '${id}')">Excluir</button>
-            </div>
-          </li>`;
-      });
-    }
-
-    // 4. INVESTIMENTOS
-    document.getElementById("form-investimento").addEventListener("submit", (e) => {
-      e.preventDefault();
-      push(investimentosRef, {
-        descricao: document.getElementById("inv-desc").value,
-        valor: parseFloat(document.getElementById("inv-valor").value),
-        tipo: document.getElementById("inv-tipo").value,
-        data: document.getElementById("inv-data").value
-      });
-      e.target.reset();
-    });
-
-    onValue(investimentosRef, (snapshot) => {
-      globalData.investimentos = snapshot.val() || {};
-      renderInvestimentos();
-      renderGeral();
-    });
-
-    function renderInvestimentos() {
-      const list = document.getElementById("list-investimentos");
-      list.innerHTML = "";
-      Object.keys(globalData.investimentos).forEach(id => {
-        const item = globalData.investimentos[id];
-        list.innerHTML += `
-          <li>
-            <div class="item-info">
-              <span class="item-title">${item.descricao}</span>
-              <span class="item-sub">Tipo: ${item.tipo} | Aplicação: ${item.data}</span>
-            </div>
-            <div class="item-actions">
-              <span class="item-val val-invest">R$ ${Number(item.valor).toFixed(2)}</span>
-              <button class="btn-action btn-edit" onclick="editarItem('investimentos', '${id}')">Editar</button>
-              <button class="btn-action btn-delete" onclick="excluirItem('investimentos', '${id}')">Excluir</button>
-            </div>
-          </li>`;
-      });
-    }
-
-    // 5. VISÃO GERAL, PERÍODO E CARDS DIVERSOS
-    document.getElementById("filter-mes-inicio").addEventListener("change", renderGeral);
-    document.getElementById("filter-mes-fim").addEventListener("change", renderGeral);
-    document.getElementById("filter-status").addEventListener("change", renderGeral);
-
-    function getCardClass(nomeCartao) {
-      const nome = (nomeCartao || '').toLowerCase();
-      if (nome.includes('nubank')) return 'bg-nubank';
-      if (nome.includes('itaú') || nome.includes('itau')) return 'bg-itau';
-      if (nome.includes('inter')) return 'bg-inter';
-      if (nome.includes('bradesco')) return 'bg-bradesco';
-      if (nome.includes('santander')) return 'bg-santander';
-      if (nome.includes('c6')) return 'bg-c6';
-      if (nome.includes('xp')) return 'bg-xp';
-      return 'bg-default';
-    }
-
-    function renderGeral() {
-      const list = document.getElementById("list-geral");
-      const cardsWrapper = document.getElementById("cards-wrapper");
-      const catCardsWrapper = document.getElementById("category-cards-wrapper");
-      const investCardsWrapper = document.getElementById("invest-cards-wrapper");
-
-      list.innerHTML = "";
-      cardsWrapper.innerHTML = "";
-      catCardsWrapper.innerHTML = "";
-      investCardsWrapper.innerHTML = "";
-
-      const mesInicio = document.getElementById("filter-mes-inicio").value;
-      const mesFim = document.getElementById("filter-mes-fim").value;
-      const statusFiltro = document.getElementById("filter-status").value;
-
-      let totalRec = 0;
-      let totalDesp = 0;
-
-      let totalRefeicao = 0;
-      let totalAlimentacao = 0;
-      let totalContas = 0;
-
-      let totalInvestido = 0;
-      let investPorTipo = {
-        'Renda Fixa': 0,
-        'Renda Variável': 0,
-        'Reserva': 0,
-        'Cripto': 0
-      };
-
-      // Cálculo dos Investimentos (Patrimônio Total)
-      Object.keys(globalData.investimentos).forEach(id => {
-        const item = globalData.investimentos[id];
-        const val = Number(item.valor) || 0;
-        totalInvestido += val;
-        if (investPorTipo[item.tipo] !== undefined) {
-          investPorTipo[item.tipo] += val;
-        }
-      });
-
-      let todos = [];
-      let faturasPorCartao = {};
-
-      Object.keys(globalData.receitas).forEach(id => {
-        todos.push({ ...globalData.receitas[id], id, cat: 'receitas', badge: 'badge-receita', tipoNome: 'Receita' });
-      });
-      Object.keys(globalData.despesas).forEach(id => {
-        todos.push({ ...globalData.despesas[id], id, cat: 'despesas', badge: 'badge-despesa', tipoNome: 'Despesa' });
-      });
-      Object.keys(globalData.cartoes).forEach(id => {
-        todos.push({ ...globalData.cartoes[id], id, cat: 'cartoes', badge: 'badge-cartao', tipoNome: 'Cartão' });
-      });
-
-      todos.forEach(item => {
-        const itemMes = item.data ? item.data.slice(0, 7) : '';
-        const passaInicio = !mesInicio || itemMes >= mesInicio;
-        const passaFim = !mesFim || itemMes <= mesFim;
-        const passaMes = passaInicio && passaFim;
-
-        const passaStatus = statusFiltro === 'todos' || 
-                            (statusFiltro === 'pago' && item.pago) || 
-                            (statusFiltro === 'pendente' && !item.pago);
-
-        if (passaMes && passaStatus) {
-          const valNum = Number(item.valor) || 0;
-          
-          if (item.cat === 'receitas') {
-            totalRec += valNum;
-            if (item.categoria === 'Refeição') totalRefeicao += valNum;
-            if (item.categoria === 'Alimentação') totalAlimentacao += valNum;
-          } else if (item.cat === 'despesas') {
-            totalDesp += valNum;
-            totalContas += valNum;
-          } else if (item.cat === 'cartoes') {
-            totalDesp += valNum;
-            if (item.cartao) {
-              const nomeCard = item.cartao.trim();
-              faturasPorCartao[nomeCard] = (faturasPorCartao[nomeCard] || 0) + valNum;
-            }
-          }
-
-          list.innerHTML += `
-            <li class="${item.pago ? 'pago-status' : 'pendente-status'}">
-              <div class="item-info">
-                <span class="item-title">
-                  ${item.descricao} 
-                  <span class="badge-tipo ${item.badge}">${item.tipoNome}</span>
-                </span>
-                <span class="item-sub">Data: ${item.data}</span>
-              </div>
-              <div class="item-actions">
-                <span class="item-val ${item.cat === 'receitas' ? 'val-receita' : 'val-despesa'}">
-                  ${item.cat === 'receitas' ? '+' : '-'} R$ ${valNum.toFixed(2)}
-                </span>
-                <label class="pay-toggle">
-                  <input type="checkbox" ${item.pago ? 'checked' : ''} onchange="togglePago('${item.cat}', '${item.id}', ${item.pago})"> 
-                  ${item.pago ? 'Pago/Recebido' : 'Pendente'}
-                </label>
-                <button class="btn-action btn-edit" onclick="editarItem('${item.cat}', '${item.id}')">Editar</button>
-                <button class="btn-action btn-delete" onclick="excluirItem('${item.cat}', '${item.id}')">Excluir</button>
-              </div>
-            </li>`;
-        }
-      });
-
-      // Renderiza Cards dos Investimentos
-      investCardsWrapper.innerHTML = `
-        <div class="dashboard-card bg-inv-total">
-          <div class="card-brand">Patrimônio Total</div>
-          <div>
-            <div class="card-label">Acumulado</div>
-            <div class="card-amount">R$ ${totalInvestido.toFixed(2)}</div>
-          </div>
-        </div>
-        <div class="dashboard-card bg-renda-fixa">
-          <div class="card-brand">Renda Fixa</div>
-          <div>
-            <div class="card-label">Total Aplicado</div>
-            <div class="card-amount">R$ ${investPorTipo['Renda Fixa'].toFixed(2)}</div>
-          </div>
-        </div>
-        <div class="dashboard-card bg-renda-variavel">
-          <div class="card-brand">Renda Variável</div>
-          <div>
-            <div class="card-label">Ações / FIIs</div>
-            <div class="card-amount">R$ ${investPorTipo['Renda Variável'].toFixed(2)}</div>
-          </div>
-        </div>
-        <div class="dashboard-card bg-cripto">
-          <div class="card-brand">Cripto</div>
-          <div>
-            <div class="card-label">Total Cripto</div>
-            <div class="card-amount">R$ ${investPorTipo['Cripto'].toFixed(2)}</div>
-          </div>
-        </div>
-      `;
-
-      // Renderiza Cards das Categorias
-      catCardsWrapper.innerHTML = `
-        <div class="dashboard-card bg-refeicao">
-          <div class="card-brand">Refeição (VR)</div>
-          <div>
-            <div class="card-label">Total Recebido</div>
-            <div class="card-amount">R$ ${totalRefeicao.toFixed(2)}</div>
-          </div>
-        </div>
-        <div class="dashboard-card bg-alimentacao">
-          <div class="card-brand">Alimentação (VA)</div>
-          <div>
-            <div class="card-label">Total Recebido</div>
-            <div class="card-amount">R$ ${totalAlimentacao.toFixed(2)}</div>
-          </div>
-        </div>
-        <div class="dashboard-card bg-contas">
-          <div class="card-brand">Contas / Despesas</div>
-          <div>
-            <div class="card-label">Total a Pagar</div>
-            <div class="card-amount">R$ ${totalContas.toFixed(2)}</div>
-          </div>
-        </div>
-      `;
-
-      // Renderiza os Cards dos Cartões
-      const cartoesNomes = Object.keys(faturasPorCartao);
-      if (cartoesNomes.length === 0) {
-        cardsWrapper.innerHTML = `<p style="color: #777; font-size: 14px;">Nenhuma fatura de cartão para este período.</p>`;
+      if (!isNaN(novoValor) && novoValor >= 0) {
+        const itemRef = ref(db, `financas/investimentos/${id}`);
+        update(itemRef, { valorAtual: novoValor });
       } else {
-        cartoesNomes.forEach(nomeCard => {
-          const totalFatura = faturasPorCartao[nomeCard];
-          const bgClass = getCardClass(nomeCard);
-          cardsWrapper.innerHTML += `
-            <div class="dashboard-card ${bgClass}">
-              <div class="card-brand">${nomeCard}</div>
-              <div>
-                <div class="card-label">Total no Período</div>
-                <div class="card-amount">R$ ${totalFatura.toFixed(2)}</div>
-              </div>
-            </div>`;
-        });
+        alert("Digite um valor válido.");
+      }
+    };
+
+    // FUNÇÃO DE RESGATE DE INVESTIMENTO
+    window.resgatarInvestimento = (id) => {
+      const item = globalData.investimentos[id];
+      if (!item) return;
+
+      const valAtualDisponivel = item.valorAtual !== undefined ? Number(item.valorAtual) : Number(item.valor);
+
+      if (valAtualDisponivel <= 0) {
+        alert("Este investimento já possui saldo zero.");
+        return;
       }
 
-      document.getElementById("total-receitas").innerText = `R$ ${totalRec.toFixed(2)}`;
-      document.getElementById("total-despesas").innerText = `R$ ${totalDesp.toFixed(2)}`;
+      const valResgateStr = prompt(`Resgatar de "${item.descricao}":\nSaldo disponível atual: R$ ${valAtualDisponivel.toFixed(2)}\n\nDigite o valor a resgatar:`, valAtualDisponivel);
       
-      const saldo = totalRec - totalDesp;
-      const saldoElem = document.getElementById("saldo-mes");
-      saldoElem.innerText = `R$ ${saldo.toFixed(2)}`;
-      saldoElem.className = saldo >= 0 ? "val-receita" : "val-despesa";
-    }
-  </script>
-</body>
-</html>
+      if (valResgateStr === null) return;
+      const valResgate = parseFloat(valResgateStr);
+
+      if (isNaN(valResgate) || valResgate <= 0) {
+        alert("Digite um valor de resgate válido.");
+        return;
+      }
+
+      if (valResgate > valAtualDisponivel) {
+        alert("O valor do resgate não pode ser superior ao saldo disponível no investimento.");
+        return;
+      }
+
+      const dataResgate = prompt("Data do recebimento na receita (AAAA-MM-DD):", todayFormatted) || todayFormatted;
+
+      // 1. Debita do Saldo do Investimento
+      const novoSaldoInvestimento = valAtualDisponivel - valResgate;
+      const investRef = ref(db, `financas/investimentos/${id}`);
+      update(investRef, { valorAtual: novoSaldoInvestimento });
+
+      // 2. Adiciona o valor resgatado automaticamente nas RECEITAS
+      push(receitasRef, {
+        descricao: `Resgate: ${item.descricao}`,
+        valor: valResgate,
+        categoria: 'Investimen
